@@ -1,0 +1,8 @@
+[Unit]
+Description=Export telemetry to JSON + push to GitHub Pages
+
+[Service]
+Type=oneshot
+Environment=TWIN_REPO=/opt/vw-t6-twin-repo
+Environment=TWIN_PUSH=1
+ExecStart=/usr/bin/python3 /usr/local/bin/twin-export.py

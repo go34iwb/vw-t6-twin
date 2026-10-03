@@ -1,0 +1,14 @@
+[Unit]
+Description=VW T6 twin — battery undervoltage watchdog
+After=multi-user.target
+
+[Service]
+Type=simple
+Environment=TWIN_LOW_V=12.0
+Environment=TWIN_LOW_HOLD=30
+ExecStart=/usr/bin/python3 /opt/vw-t6-twin/power_watch.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

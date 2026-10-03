@@ -1,0 +1,6 @@
+[Unit]
+Description=Merge incoming Pi telemetry.db into master DB
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /usr/local/bin/twin-ingest.py

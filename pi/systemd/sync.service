@@ -1,0 +1,7 @@
+[Unit]
+Description=VW T6 twin — push telemetry.db to twin-server via Tailscale
+After=network-online.target tailscaled.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/vw-t6-twin/sync.py

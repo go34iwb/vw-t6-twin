@@ -1,0 +1,10 @@
+[Unit]
+Description=Run twin-export every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+Unit=twin-export.service
+
+[Install]
+WantedBy=timers.target

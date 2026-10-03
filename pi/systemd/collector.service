@@ -1,0 +1,18 @@
+[Unit]
+Description=VW T6 twin — OBD/GPS collector
+After=bluetooth.service gpsd.service multi-user.target
+Wants=bluetooth.service gpsd.service
+
+[Service]
+Type=simple
+Environment=TWIN_DB=/var/lib/twin/telemetry.db
+Environment=TWIN_OBD_INTERVAL=5
+Environment=TWIN_GPS_INTERVAL=10
+Environment=TWIN_MOVE_MIN_KMH=5
+ExecStartPre=/usr/bin/mkdir -p /var/lib/twin
+ExecStart=/usr/bin/python3 /opt/vw-t6-twin/collector.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
