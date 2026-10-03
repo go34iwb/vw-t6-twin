@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>VW T6 Digital Twin — Telemetrie</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--ink:#172126;--muted:#5a696d;--paper:#f3f1ea;--panel:#fffdf8;--line:#c8c5ba;--accent:#b7472a;}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);background:var(--paper);font-family:Georgia,"Times New Roman",serif}
+.shell{width:min(1180px,calc(100% - 32px));margin:0 auto}
+.masthead{background:var(--panel);border-bottom:1px solid var(--line);padding:32px 0}
+h1{margin:0;font-size:2.2rem;font-weight:400}
+.eyebrow{font:700 .7rem Arial,sans-serif;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:24px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;font-family:Arial,sans-serif}
+.card h3{margin:0 0 10px;font-family:Georgia;font-size:1.1rem;font-weight:400}
+#map{height:360px;border-radius:4px}
+.muted{color:var(--muted);font-size:.85rem}
+.stat{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line);font-size:.95rem}
+.stat b{font-size:1.1rem}
+footer{margin-top:48px;padding:20px 0;background:#172126;color:#e8e6df;font:.8rem Arial,sans-serif}
+@media (max-width:760px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header class="masthead"><div class="shell">
+  <p class="eyebrow">VW T6 · 2017 · Digital Twin</p>
+  <h1>Telemetrie &amp; Position</h1>
+  <p class="muted" id="last-update">Lade Daten…</p>
+</div></header>
+
+<main class="shell">
+  <div class="grid">
+    <article class="card">
+      <h3>Letzte Position</h3>
+      <div id="map"></div>
+      <p class="muted" id="last-pos-meta">—</p>
+    </article>
+
+    <article class="card">
+      <h3>Aktuelle Werte</h3>
+      <div class="stat"><span>Drehzahl</span><b id="s-rpm">—</b></div>
+      <div class="stat"><span>Geschwindigkeit</span><b id="s-speed">—</b></div>
+      <div class="stat"><span>Kühlmittel</span><b id="s-cool">—</b></div>
+      <div class="stat"><span>Bordspannung</span><b id="s-volt">—</b></div>
+      <div class="stat"><span>Kraftstoff</span><b id="s-fuel">—</b></div>
+    </article>
+  </div>
+
+  <div class="grid" style="margin-top:18px;">
+    <article class="card"><h3>Drehzahl (24h)</h3><canvas id="c-rpm"></canvas></article>
+    <article class="card"><h3>Geschwindigkeit (24h)</h3><canvas id="c-speed"></canvas></article>
+    <article class="card"><h3>Kühlmitteltemperatur (24h)</h3><canvas id="c-cool"></canvas></article>
+    <article class="card"><h3>Bordspannung (24h)</h3><canvas id="c-volt"></canvas></article>
+  </div>
+</main>
+
+<footer><div class="shell">VW T6 Digital Twin · Daten via Tailscale · aktualisiert alle 5 Minuten</div></footer>
+
+<script>
+const fmt = (t) => new Date(t*1000).toLocaleString('de-DE');
+const fmtHM = (t) => new Date(t*1000).toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit'});
+
+async function boot(){
+  let data;
+  try {
+    const r = await fetch('data/latest.json?_' + Date.now());
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    data = await r.json();
+  } catch (e) {
+    document.getElementById('last-update').textContent =
+      'Noch keine Daten. Wartet auf ersten Pi-Sync. (' + e.message + ')';
+    return;
+  }
+  const upd = new Date(data.generated_at);
+  document.getElementById('last-update').textContent =
+    'Letzter Sync: ' + upd.toLocaleString('de-DE');
+
+  // Map
+  if (data.last_position) {
+    const lp = data.last_position;
+    const map = L.map('map').setView([lp.lat, lp.lon], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                {attribution:'&copy; OpenStreetMap'}).addTo(map);
+    L.marker([lp.lat, lp.lon]).addTo(map);
+    if (data.gps_last_24h.length > 1) {
+      const track = data.gps_last_24h.filter(p => p.lat).map(p => [p.lat, p.lon]);
+      L.polyline(track, {color:'#b7472a', weight:3, opacity:.8}).addTo(map);
+    }
+    document.getElementById('last-pos-meta').textContent =
+      'Zuletzt aktiv: ' + fmt(lp.ts) + ' (' + lp.lat.toFixed(5) + ', ' + lp.lon.toFixed(5) + ')';
+  } else {
+    document.getElementById('map').innerHTML =
+      '<p style="padding:20px;color:#888">Keine GPS-Daten bisher.</p>';
+  }
+
+  // Latest stats
+  const obd = data.obd_last_24h || [];
+  if (obd.length) {
+    const last = obd[obd.length - 1];
+    const s = (id, v, u) => document.getElementById(id).textContent =
+      (v == null ? '—' : (typeof v === 'number' ? v.toFixed(v > 100 ? 0 : 1) : v) + ' ' + u);
+    s('s-rpm', last.rpm, 'U/min');
+    s('s-speed', last.speed_kmh, 'km/h');
+    s('s-cool', last.coolant_c, '°C');
+    s('s-volt', last.battery_v, 'V');
+    s('s-fuel', last.fuel_pct, '%');
+  }
+
+  // Charts
+  const labels = obd.map(r => fmtHM(r.ts));
+  const series = [
+    ['c-rpm',   obd.map(r => r.rpm),        'U/min', '#b7472a'],
+    ['c-speed', obd.map(r => r.speed_kmh),  'km/h',  '#3c7881'],
+    ['c-cool',  obd.map(r => r.coolant_c),  '°C',    '#d6a746'],
+    ['c-volt',  obd.map(r => r.battery_v),  'V',     '#5a696d']
+  ];
+  series.forEach(([id, vals, unit, color]) => {
+    new Chart(document.getElementById(id), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{data: vals, label: unit, borderColor: color,
+                    pointRadius: 0, borderWidth: 1.5, tension: .2}]
+      },
+      options: {animation: false,
+                scales: {x: {ticks: {maxTicksLimit: 8}}},
+                plugins: {legend: {display: false}}}
+    });
+  });
+}
+boot();
+</script>
+</body>
+</html>
