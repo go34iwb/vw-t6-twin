@@ -24,6 +24,18 @@ h1{margin:0;font-size:2.2rem;font-weight:400}
 .stat{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line);font-size:.95rem}
 .stat b{font-size:1.1rem}
 footer{margin-top:48px;padding:20px 0;background:#172126;color:#e8e6df;font:.8rem Arial,sans-serif}
+.tabs{display:flex;gap:8px;margin-top:26px;font-family:Arial,sans-serif}
+.tabs button{padding:10px 22px;border:1px solid var(--line);border-bottom:none;background:#e8e6df;color:var(--muted);font:600 .85rem Arial,sans-serif;letter-spacing:.04em;border-radius:6px 6px 0 0;cursor:pointer}
+.tabs button.active{background:var(--panel);color:var(--accent);position:relative;top:1px}
+.tabpane{display:none}
+.tabpane.active{display:block}
+.bom-table{width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:.92rem}
+.bom-table th{text-align:left;padding:8px 10px;border-bottom:2px solid var(--line);color:var(--accent);font-size:.78rem;text-transform:uppercase;letter-spacing:.06em}
+.bom-table td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+.bom-table tr:last-child td{border-bottom:none}
+.bom-col{flex:1;min-width:0}
+.bom-cols{display:flex;gap:18px;flex-wrap:wrap}
+.schematic{width:100%;height:auto}
 @media (max-width:760px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
@@ -34,8 +46,15 @@ footer{margin-top:48px;padding:20px 0;background:#172126;color:#e8e6df;font:.8re
   <p class="muted" id="last-update">Lade Daten…</p>
 </div></header>
 
+<nav class="tabs shell">
+  <button class="active" data-tab="telemetrie" onclick="showTab('telemetrie')">Telemetrie</button>
+  <button data-tab="system" onclick="showTab('system')">Systemaufbau</button>
+</nav>
+
 <main class="shell">
-  <div class="grid">
+
+  <!-- ═══ Tab 1: Telemetrie ═══ -->
+  <section id="tab-telemetrie" class="tabpane active">  <div class="grid">
     <article class="card">
       <h3>Letzte Position</h3>
       <div id="map"></div>
@@ -58,7 +77,195 @@ footer{margin-top:48px;padding:20px 0;background:#172126;color:#e8e6df;font:.8re
     <article class="card"><h3>Kühlmitteltemperatur (24h)</h3><canvas id="c-cool"></canvas></article>
     <article class="card"><h3>Bordspannung (24h)</h3><canvas id="c-volt"></canvas></article>
   </div>
+  </section>
+
+  <!-- ═══ Tab 2: Systemaufbau (Hardware + Schema) ═══ -->
+  <section id="tab-system" class="tabpane">
+
+    <div class="grid" style="margin-top:24px;">
+      <article class="card">
+        <h3>Hardware — Fahrzeug (Pi Blackbox im Bus)</h3>
+        <table class="bom-table">
+          <tr><th>#</th><th>Bauteil</th><th>Spezifikation</th></tr>
+          <tr><td>1</td><td>Raspberry Pi Zero 2 W</td><td>512MB RAM, WiFi on board, Hauptrechner</td></tr>
+          <tr><td>2</td><td>microSD-Karte</td><td>32 GB High Endurance (SanDisk Max Endurance)</td></tr>
+          <tr><td>3</td><td>GPS HAT</td><td>u-blox, UART (Waveshare L76X), Antenne an Frontscheibe</td></tr>
+          <tr><td>4</td><td>ELM327 Bluetooth</td><td>OBD-II Adapter (z.&nbsp;B. Vgate iCar Pro)</td></tr>
+          <tr><td>5</td><td>DC-DC Wandler</td><td>12V→5V, ≥3A, LM2596-Modul mit Enable-Pin</td></tr>
+          <tr><td>6</td><td>Spannungsteiler</td><td>100k/22k → GPIO-ADC via ADS1115</td></tr>
+          <tr><td>7</td><td>ADS1115</td><td>I2C ADC, 16-bit (Pi hat keinen ADC)</td></tr>
+          <tr><td>8</td><td>Unterspannungs-Schutzrelais</td><td>Kemo M148, Cutoff ~12.0V (Hardware-Fallback)</td></tr>
+          <tr><td>9</td><td>KFZ-Kabel + Sicherung</td><td>1,5mm², Flachsicherung 5A, ~3m, an Zweitbatterie</td></tr>
+          <tr><td>10</td><td>Gehäuse</td><td>IP40, ~100×70×30mm, hinter dem Armaturenbrett</td></tr>
+        </table>
+        <p class="muted">Kosten Fahrzeug-Seite: ca. 90–110&nbsp;€</p>
+      </article>
+
+      <article class="card">
+        <h3>Hardware — Zuhause (Infrastruktur)</h3>
+        <table class="bom-table">
+          <tr><th>#</th><th>Komponente</th><th>Rolle</th></tr>
+          <tr><td>11</td><td>Intel NUC + Proxmox</td><td>Hypervisor, beherbergt alle Container</td></tr>
+          <tr><td>12</td><td>LXC «twin-server»</td><td>Debian 12, 1 vCPU, 512MB, 8GB — Ingest, SQLite-Master, Export + Git-Push</td></tr>
+          <tr><td>13</td><td>LXC «gh-pages»</td><td>Statisches Hosting-Klon/Build dieses Dashboards (optional)</td></tr>
+          <tr><td>14</td><td>TrueNAS</td><td>Optionale DB-Backups der telemetry.db</td></tr>
+          <tr><td>15</td><td>Tailscale</td><td>Mesh-VPN, keine Port-Freigaben nötig</td></tr>
+          <tr><td>16</td><td>GitHub Pages</td><td>Dieses öffentliche Dashboard (go34iwb/vw-t6-twin)</td></tr>
+        </table>
+        <h3 style="margin-top:18px;">Optionales Mobilfunk-Upgrade (v2)</h3>
+        <table class="bom-table">
+          <tr><td>17</td><td>LTE/USB-Modem oder SIM800L</td><td>Live-Sync unterwegs statt Heim-WLAN-Batch</td></tr>
+          <tr><td>18</td><td>IoT-Daten-SIM</td><td>z.&nbsp;B. 1NCE / Hologram, ~10&nbsp;€ einmalig</td></tr>
+        </table>
+      </article>
+    </div>
+
+    <div class="grid" style="margin-top:18px;grid-template-columns:1fr;">
+      <article class="card">
+        <h3>System-Schema — Verkabelung &amp; Datenfluss</h3>
+        <svg class="schematic" viewBox="0 0 1160 620" xmlns="http://www.w3.org/2000/svg" font-family="Arial,sans-serif">
+          <defs>
+            <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#b7472a"/>
+            </marker>
+            <marker id="arrG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="#5a696d"/>
+            </marker>
+          </defs>
+
+          <!-- Zone labels -->
+          <rect x="10" y="10" width="560" height="600" rx="10" fill="#fffdf8" stroke="#c8c5ba"/>
+          <text x="30" y="42" font-size="15" font-weight="bold" fill="#b7472a">FAHRZEUG — VW T6 (2017)</text>
+          <rect x="590" y="10" width="560" height="600" rx="10" fill="#fffdf8" stroke="#c8c5ba"/>
+          <text x="610" y="42" font-size="15" font-weight="bold" fill="#b7472a">ZUHAUSE / CLOUD</text>
+
+          <!-- Vehicle: battery + power chain -->
+          <rect x="30" y="70" width="150" height="52" rx="6" fill="#172126"/>
+          <text x="105" y="91" text-anchor="middle" fill="#f3f1ea" font-size="12" font-weight="bold">Zweitbatterie</text>
+          <text x="105" y="110" text-anchor="middle" fill="#c8c5ba" font-size="10">12V Bordnetz</text>
+
+          <rect x="230" y="70" width="120" height="52" rx="6" fill="#fff" stroke="#5a696d"/>
+          <text x="290" y="91" text-anchor="middle" font-size="11" font-weight="bold">Sicherung 5A</text>
+          <text x="290" y="108" text-anchor="middle" font-size="9" fill="#5a696d">1,5mm² KFZ-Kabel</text>
+
+          <rect x="400" y="70" width="150" height="52" rx="6" fill="#fff" stroke="#5a696d"/>
+          <text x="475" y="88" text-anchor="middle" font-size="11" font-weight="bold">Kemo M148</text>
+          <text x="475" y="103" text-anchor="middle" font-size="9" fill="#5a696d">Unterspannungsschutz</text>
+          <text x="475" y="116" text-anchor="middle" font-size="9" fill="#5a696d">Cutoff ~12.0V</text>
+
+          <rect x="230" y="160" width="120" height="52" rx="6" fill="#fff" stroke="#5a696d"/>
+          <text x="290" y="181" text-anchor="middle" font-size="11" font-weight="bold">DC-DC 12V→5V</text>
+          <text x="290" y="197" text-anchor="middle" font-size="9" fill="#5a696d">LM2596, ≥3A, Enable</text>
+
+          <!-- Pi box -->
+          <rect x="400" y="150" width="150" height="130" rx="8" fill="#fff" stroke="#172126" stroke-width="2"/>
+          <text x="475" y="172" text-anchor="middle" font-size="13" font-weight="bold">Raspberry Pi Zero 2 W</text>
+          <text x="475" y="190" text-anchor="middle" font-size="9" fill="#5a696d">collector.py · power_watch.py</text>
+          <text x="475" y="203" text-anchor="middle" font-size="9" fill="#5a696d">sync.py (systemd timer 5min)</text>
+          <rect x="410" y="216" width="130" height="26" rx="4" fill="#e8e6df"/>
+          <text x="475" y="233" text-anchor="middle" font-size="10">SQLite WAL (Puffer)</text>
+          <text x="475" y="260" text-anchor="middle" font-size="9" fill="#5a696d">microSD 32GB High Endurance</text>
+
+          <!-- Sensors -->
+          <rect x="30" y="330" width="160" height="60" rx="6" fill="#fff" stroke="#5a696d"/>
+          <text x="110" y="352" text-anchor="middle" font-size="11" font-weight="bold">ELM327 (Bluetooth)</text>
+          <text x="110" y="367" text-anchor="middle" font-size="9" fill="#5a696d">OBD-II Buchse Fahrzeug</text>
+          <text x="110" y="380" text-anchor="middle" font-size="9" fill="#5a696d">RPM · Speed · Coolant · Fuel</text>
+
+          <rect x="30" y="410" width="160" height="52" rx="6" fill="#fff" stroke="#5a696d"/>
+          <text x="110" y="432" text-anchor="middle" font-size="11" font-weight="bold">GPS HAT (u-blox)</text>
+          <text x="110" y="447" text-anchor="middle" font-size="9" fill="#5a696d">UART · Antenne Frontscheibe</text>
+
+          <rect x="30" y="480" width="160" height="52" rx="6" fill="#fff" stroke="#5a696d"/>
+          <text x="110" y="502" text-anchor="middle" font-size="11" font-weight="bold">ADS1115 (I2C)</text>
+          <text x="110" y="517" text-anchor="middle" font-size="9" fill="#5a696d">Spannungsteiler 100k/22k</text>
+
+          <!-- Optional LTE -->
+          <rect x="230" y="520" width="320" height="60" rx="6" fill="none" stroke="#5a696d" stroke-dasharray="6 4"/>
+          <text x="390" y="542" text-anchor="middle" font-size="11" font-weight="bold" fill="#5a696d">Optional v2: LTE-Modem + IoT-SIM</text>
+          <text x="390" y="558" text-anchor="middle" font-size="9" fill="#5a696d">Live-Sync unterwegs (1NCE / Hologram)</text>
+
+          <!-- Power wires -->
+          <line x1="180" y1="96" x2="230" y2="96" stroke="#b7472a" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="350" y1="96" x2="400" y2="96" stroke="#b7472a" stroke-width="2" marker-end="url(#arr)"/>
+          <path d="M475 122 L475 140 L290 140 L290 160" fill="none" stroke="#b7472a" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="350" y1="186" x2="400" y2="186" stroke="#b7472a" stroke-width="2" marker-end="url(#arr)"/>
+          <text x="128" y="112" font-size="9" fill="#b7472a">12V</text>
+          <text x="368" y="112" font-size="9" fill="#b7472a">12V</text>
+          <text x="368" y="180" font-size="9" fill="#b7472a">5V</text>
+
+          <!-- Sensor wires -->
+          <path d="M190 360 L300 360 L300 240 L400 240" fill="none" stroke="#5a696d" stroke-width="1.6" marker-end="url(#arrG)"/>
+          <text x="300" y="352" font-size="9" fill="#5a696d">Bluetooth (rfcomm)</text>
+          <path d="M190 436 L260 436 L260 260 L400 260" fill="none" stroke="#5a696d" stroke-width="1.6" marker-end="url(#arrG)"/>
+          <text x="205" y="428" font-size="9" fill="#5a696d">UART</text>
+          <path d="M190 506 L230 506 L230 220 L400 222" fill="none" stroke="#5a696d" stroke-width="1.6" marker-end="url(#arrG)"/>
+          <text x="200" y="498" font-size="9" fill="#5a696d">I2C</text>
+          <!-- voltage divider taps battery -->
+          <path d="M105 122 L105 506 L30 506" fill="none" stroke="#5a696d" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="80" y="200" font-size="9" fill="#5a696d" transform="rotate(-90 80 200)">Messabgriff 12V</text>
+
+          <!-- ============ HOME SIDE ============ -->
+          <!-- Tailscale tunnel between zones -->
+          <path d="M550 250 L 660 250" fill="none" stroke="#b7472a" stroke-width="2.4" marker-end="url(#arr)"/>
+          <text x="605" y="238" text-anchor="middle" font-size="10" font-weight="bold" fill="#b7472a">Tailscale</text>
+          <text x="605" y="272" text-anchor="middle" font-size="9" fill="#5a696d">rsync / SFTP alle 5min</text>
+
+          <!-- NUC -->
+          <rect x="670" y="60" width="300" height="300" rx="10" fill="#fff" stroke="#172126" stroke-width="2"/>
+          <text x="820" y="84" text-anchor="middle" font-size="13" font-weight="bold">Intel NUC — Proxmox VE</text>
+
+          <rect x="690" y="100" width="260" height="120" rx="6" fill="#e8e6df" stroke="#5a696d"/>
+          <text x="820" y="120" text-anchor="middle" font-size="11" font-weight="bold">LXC «twin-server» (Debian 12)</text>
+          <text x="820" y="138" text-anchor="middle" font-size="9" fill="#172126">ingest.py → telemetry.db (SQLite Master)</text>
+          <text x="820" y="152" text-anchor="middle" font-size="9" fill="#172126">export_json.py (cron */5) → data/*.json</text>
+          <text x="820" y="166" text-anchor="middle" font-size="9" fill="#172126">git commit &amp;&amp; push → gh-pages</text>
+          <text x="820" y="190" text-anchor="middle" font-size="9" fill="#5a696d">1 vCPU · 512MB · 8GB Disk</text>
+
+          <rect x="690" y="236" width="260" height="52" rx="6" fill="#fff" stroke="#5a696d" stroke-dasharray="5 3"/>
+          <text x="820" y="256" text-anchor="middle" font-size="11" font-weight="bold">LXC «gh-pages» (optional)</text>
+          <text x="820" y="272" text-anchor="middle" font-size="9" fill="#5a696d">lokaler Klon / Preview des Dashboards</text>
+
+          <rect x="690" y="300" width="260" height="44" rx="6" fill="#fff" stroke="#5a696d"/>
+          <text x="820" y="318" text-anchor="middle" font-size="11" font-weight="bold">TrueNAS</text>
+          <text x="820" y="334" text-anchor="middle" font-size="9" fill="#5a696d">Backup der telemetry.db (nächtlich)</text>
+
+          <!-- GitHub -->
+          <rect x="1000" y="100" width="140" height="80" rx="6" fill="#172126"/>
+          <text x="1070" y="130" text-anchor="middle" fill="#f3f1ea" font-size="11" font-weight="bold">GitHub Repo</text>
+          <text x="1070" y="146" text-anchor="middle" fill="#c8c5ba" font-size="9">go34iwb/vw-t6-twin</text>
+          <text x="1070" y="162" text-anchor="middle" fill="#c8c5ba" font-size="9">branch gh-pages</text>
+
+          <rect x="1000" y="220" width="140" height="64" rx="6" fill="#fff" stroke="#b7472a" stroke-width="2"/>
+          <text x="1070" y="246" text-anchor="middle" font-size="11" font-weight="bold" fill="#b7472a">GitHub Pages</text>
+          <text x="1070" y="262" text-anchor="middle" font-size="9" fill="#5a696d">Dieses Dashboard</text>
+
+          <line x1="970" y1="160" x2="1000" y2="140" stroke="#b7472a" stroke-width="2" marker-end="url(#arr)"/>
+          <line x1="1070" y1="180" x2="1070" y2="220" stroke="#b7472a" stroke-width="2" marker-end="url(#arr)"/>
+          <text x="1125" y="205" font-size="9" fill="#5a696d">deploy</text>
+
+          <!-- data flow legend -->
+          <rect x="630" y="420" width="480" height="150" rx="8" fill="#fffdf8" stroke="#c8c5ba"/>
+          <text x="650" y="446" font-size="12" font-weight="bold">Datenfluss</text>
+          <line x1="650" y1="466" x2="690" y2="466" stroke="#b7472a" stroke-width="2" marker-end="url(#arr)"/>
+          <text x="700" y="470" font-size="10">Stromversorgung / Datentransport (Tailscale, Git)</text>
+          <line x1="650" y1="494" x2="690" y2="494" stroke="#5a696d" stroke-width="1.6" marker-end="url(#arrG)"/>
+          <text x="700" y="498" font-size="10">Sensorbus (Bluetooth / UART / I2C)</text>
+          <line x1="650" y1="522" x2="690" y2="522" stroke="#5a696d" stroke-width="1" stroke-dasharray="3 3"/>
+          <text x="700" y="526" font-size="10">Messabgriff / optionale Komponente (gestrichelte Box)</text>
+          <text x="650" y="552" font-size="10" fill="#5a696d">Privacy: GPS-Feinauflösung wird nach 24h aggregiert gelöscht.</text>
+        </svg>
+      </article>
+    </div>
+  </section>
 </main>
+<script>
+function showTab(name){
+  document.querySelectorAll('.tabpane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
+  if (name === 'telemetrie' && window.__map) setTimeout(() => window.__map.invalidateSize(), 60);
+}
+</script>
 
 <footer><div class="shell">VW T6 Digital Twin · Daten via Tailscale · aktualisiert alle 5 Minuten</div></footer>
 
@@ -85,6 +292,7 @@ async function boot(){
   if (data.last_position) {
     const lp = data.last_position;
     const map = L.map('map').setView([lp.lat, lp.lon], 14);
+    window.__map = map;
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
                 {attribution:'&copy; OpenStreetMap'}).addTo(map);
     L.marker([lp.lat, lp.lon]).addTo(map);
