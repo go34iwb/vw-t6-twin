@@ -8,6 +8,9 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<!-- Three.js für 3D-Modell -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <style>
 :root{--ink:#172126;--muted:#5a696d;--paper:#f3f1ea;--panel:#fffdf8;--line:#c8c5ba;--accent:#b7472a;}
 *{box-sizing:border-box}
@@ -24,9 +27,11 @@ h1{margin:0;font-size:2.2rem;font-weight:400}
 .stat{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line);font-size:.95rem}
 .stat b{font-size:1.1rem}
 footer{margin-top:48px;padding:20px 0;background:#172126;color:#e8e6df;font:.8rem Arial,sans-serif}
-.tabs{display:flex;gap:8px;margin-top:26px;font-family:Arial,sans-serif}
-.tabs button{padding:10px 22px;border:1px solid var(--line);border-bottom:none;background:#e8e6df;color:var(--muted);font:600 .85rem Arial,sans-serif;letter-spacing:.04em;border-radius:6px 6px 0 0;cursor:pointer}
+.tabs{display:flex;gap:8px;margin-top:26px;font-family:Arial,sans-serif;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.tabs-scroll{display:flex;gap:8px;flex:1}
+.tabs button{padding:10px 22px;border:1px solid var(--line);border-bottom:none;background:#e8e6df;color:var(--muted);font:600 .85rem Arial,sans-serif;letter-spacing:.04em;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .tabs button.active{background:var(--panel);color:var(--accent);position:relative;top:1px}
+.tabs button .tab-label-sm{display:none}
 .tabpane{display:none}
 .tabpane.active{display:block}
 .bom-table{width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:.92rem}
@@ -36,7 +41,15 @@ footer{margin-top:48px;padding:20px 0;background:#172126;color:#e8e6df;font:.8re
 .bom-col{flex:1;min-width:0}
 .bom-cols{display:flex;gap:18px;flex-wrap:wrap}
 .schematic{width:100%;height:auto}
-@media (max-width:760px){.grid{grid-template-columns:1fr}}
+#three-container{width:100%;height:500px;background:#172126;border-radius:4px;cursor:grab}
+#three-container:active{cursor:grabbing}
+@media (max-width:760px){.grid{grid-template-columns:1fr}
+#three-container{height:350px}
+.tabs button{padding:8px 14px;font:.65rem Arial,sans-serif}
+.tabs button .tab-label-sm{display:inline}
+h1{font-size:1.6rem}
+.masthead{padding:20px 0}
+}
 </style>
 </head>
 <body>
@@ -47,11 +60,13 @@ footer{margin-top:48px;padding:20px 0;background:#172126;color:#e8e6df;font:.8re
 </div></header>
 
 <nav class="tabs shell">
-  <button class="active" data-tab="telemetrie" onclick="showTab('telemetrie')">Telemetrie</button>
-  <button data-tab="system" onclick="showTab('system')">Systemaufbau</button>
-  <button data-tab="3d" onclick="showTab('3d')">3D-Simulation</button>
-  <button data-tab="antrieb" onclick="showTab('antrieb')">Antriebsstrang</button>
-  <button data-tab="anomalien" onclick="showTab('anomalien')">Anomalie-Erkennung</button>
+  <div class="tabs-scroll">
+    <button class="active" data-tab="telemetrie" onclick="showTab('telemetrie')">Telemetrie</button>
+    <button data-tab="system" onclick="showTab('system')">Systemaufbau</button>
+    <button data-tab="3d" onclick="showTab('3d')"><span class="tab-label">3D</span><span class="tab-label-sm">Sim</span></button>
+    <button data-tab="antrieb" onclick="showTab('antrieb')"><span class="tab-label">Chassis</span><span class="tab-label-sm">Draufsicht</span></button>
+    <button data-tab="anomalien" onclick="showTab('anomalien')"><span class="tab-label">Anomalien</span><span class="tab-label-sm">AI</span></button>
+  </div>
 </nav>
 
 <main class="shell">
@@ -265,17 +280,13 @@ footer{margin-top:48px;padding:20px 0;background:#172126;color:#e8e6df;font:.8re
   <!-- ═══ Tab 3: 3D Fahrzeug-Simulation ═══ -->
   <section id="tab-3d" class="tabpane">
     <div class="grid" style="margin-top:24px;">
-      <article class="card">
-        <h3>VW T6 — Interaktive 3D-Ansicht</h3>
-        <div id="model-3d" style="width:100%;height:400px;background:#172126;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#e8e6df;font-family:monospace;">
-          <div style="text-align:center;">
-            <p style="font-size:2rem;">🚐</p>
-            <p>3D-Modell wird geladen…</p>
-            <p style="font-size:.8rem;color:#888;">GLTF-Datei wird generiert</p>
-          </div>
+      <article class="card" style="grid-column: 1 / -1;">
+        <h3>🚐 VW T6 — Interaktive 3D-Ansicht</h3>
+        <div id="model-3d" style="width:100%;height:500px;background:#172126;border-radius:4px;overflow:hidden;">
+          <div id="three-container" style="width:100%;height:100%;"></div>
         </div>
-        <p class="muted" style="margin-top:12px;">
-          Echtzeit-Modell des T6 mit Sensor-Positionen. Die GPS-Position wird aus der Telemetrie gespeist.
+        <p class="muted" style="margin-top:12px;text-align:center;color:#888;">
+          Interaktives 3D-Modell des VW T6 — ziehe zum Drehen, Scrolle zum Zoomen
         </p>
       </article>
       <article class="card">
@@ -607,5 +618,310 @@ async function boot(){
 }
 boot();
 </script>
-</body>
-</html>
+
+<script>
+// ═══ Three.js 3D VW T6 Modell ═══
+let threeReady = false;
+let threeScene, threeCamera, threeRenderer, threeControls;
+
+function initThreeModel() {
+  if (threeReady) return;
+  
+  const container = document.getElementById('three-container');
+  if (!container || container.children.length > 0) return;
+  
+  const width = container.clientWidth;
+  const height = container.clientHeight;
+  
+  // Szene
+  threeScene = new THREE.Scene();
+  threeScene.background = new THREE.Color(0x172126);
+  
+  // Kamera
+  threeCamera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+  threeCamera.position.set(8, 6, 8);
+  threeCamera.lookAt(0, 0, 0);
+  
+  // Renderer
+  threeRenderer = new THREE.WebGLRenderer({ antialias: true });
+  threeRenderer.setSize(width, height);
+  threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  threeRenderer.shadowMap.enabled = true;
+  container.appendChild(threeRenderer.domElement);
+  
+  // OrbitControls
+  threeControls = new THREE.OrbitControls(threeCamera, threeRenderer.domElement);
+  threeControls.enableDamping = true;
+  threeControls.dampingFactor = 0.08;
+  threeControls.minDistance = 3;
+  threeControls.maxDistance = 20;
+  threeControls.target.set(0, 0.5, 0);
+  
+  // Beleuchtung
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+  threeScene.add(ambientLight);
+  
+  const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+  dirLight1.position.set(5, 10, 5);
+  dirLight1.castShadow = true;
+  threeScene.add(dirLight1);
+  
+  const dirLight2 = new THREE.DirectionalLight(0xffd4a0, 0.4);
+  dirLight2.position.set(-5, 5, -5);
+  threeScene.add(dirLight2);
+  
+  // Boden-Gitter
+  const gridHelper = new THREE.GridHelper(16, 16, 0x2a3338, 0x1a2428);
+  threeScene.add(gridHelper);
+  
+  // === VW T6 Bus Modell ===
+  const busGroup = new THREE.Group();
+  
+  // Materialien
+  const bodyMat = new THREE.MeshPhongMaterial({ color: 0xe8e6df, specular: 0x444444, shininess: 60 });
+  const glassMat = new THREE.MeshPhongMaterial({ color: 0x3c7881, transparent: true, opacity: 0.5, specular: 0xffffff, shininess: 100 });
+  const wheelMat = new THREE.MeshPhongMaterial({ color: 0x1a1a1a, specular: 0x222222, shininess: 30 });
+  const chromeMat = new THREE.MeshPhongMaterial({ color: 0xc0c0c0, specular: 0xffffff, shininess: 100 });
+  const lightMat = new THREE.MeshPhongMaterial({ color: 0xffd4a0, emissive: 0xffd4a0, emissiveIntensity: 0.3 });
+  const tailMat = new THREE.MeshPhongMaterial({ color: 0xff2222, emissive: 0xff0000, emissiveIntensity: 0.2 });
+  const chassisMat = new THREE.MeshPhongMaterial({ color: 0x333333, specular: 0x111111, shininess: 20 });
+  
+  // Karosserie — Hauptkörper (T6 Bus Form)
+  // Unterer Karosserie-Teil
+  const lowerBodyGeo = new THREE.BoxGeometry(2.2, 0.8, 5.0);
+  const lowerBody = new THREE.Mesh(lowerBodyGeo, bodyMat);
+  lowerBody.position.y = 0.8;
+  lowerBody.castShadow = true;
+  busGroup.add(lowerBody);
+  
+  // Oberer Karosserie-Teil (Crew-Cab/Caravelle Aufbau)
+  const upperBodyGeo = new THREE.BoxGeometry(2.0, 0.9, 3.2);
+  const upperBody = new THREE.Mesh(upperBodyGeo, bodyMat);
+  upperBody.position.set(0, 1.65, -0.2);
+  upperBody.castShadow = true;
+  busGroup.add(upperBody);
+  
+  // Dach
+  const roofGeo = new THREE.BoxGeometry(2.0, 0.05, 3.2);
+  const roof = new THREE.Mesh(roofGeo, bodyMat);
+  roof.position.set(0, 2.12, -0.2);
+  busGroup.add(roof);
+  
+  // Windschutzscheibe (vorne)
+  const windshieldGeo = new THREE.PlaneGeometry(1.8, 0.7);
+  const windshield = new THREE.Mesh(windshieldGeo, glassMat);
+  windshield.position.set(0, 1.6, 1.35);
+  windshield.rotation.x = -0.15;
+  busGroup.add(windshield);
+  
+  // Heckscheibe
+  const rearWindowGeo = new THREE.PlaneGeometry(1.8, 0.6);
+  const rearWindow = new THREE.Mesh(rearWindowGeo, glassMat);
+  rearWindow.position.set(0, 1.6, -1.85);
+  rearWindow.rotation.x = 0.15;
+  rearWindow.rotation.y = Math.PI;
+  busGroup.add(rearWindow);
+  
+  // Seitenfenster (links)
+  for (let i = 0; i < 3; i++) {
+    const sideWindowGeo = new THREE.PlaneGeometry(0.7, 0.5);
+    const sideWindow = new THREE.Mesh(sideWindowGeo, glassMat);
+    sideWindow.position.set(-1.01, 1.6, 0.5 - i * 0.9);
+    sideWindow.rotation.y = -Math.PI / 2;
+    busGroup.add(sideWindow);
+  }
+  
+  // Seitenfenster (rechts)
+  for (let i = 0; i < 3; i++) {
+    const sideWindowGeo = new THREE.PlaneGeometry(0.7, 0.5);
+    const sideWindow = new THREE.Mesh(sideWindowGeo, glassMat);
+    sideWindow.position.set(1.01, 1.6, 0.5 - i * 0.9);
+    sideWindow.rotation.y = Math.PI / 2;
+    busGroup.add(sideWindow);
+  }
+  
+  // Vordertür (links)
+  const doorGeo = new THREE.BoxGeometry(0.05, 1.2, 2.0);
+  const leftDoor = new THREE.Mesh(doorGeo, bodyMat);
+  leftDoor.position.set(-1.13, 0.9, -0.3);
+  busGroup.add(leftDoor);
+  
+  // Hintertür (Schiebetür links)
+  const slidingDoorGeo = new THREE.BoxGeometry(0.05, 1.4, 2.2);
+  const slidingDoor = new THREE.Mesh(slidingDoorGeo, bodyMat);
+  slidingDoor.position.set(-1.13, 1.0, -1.5);
+  busGroup.add(slidingDoor);
+  
+  // rechte Türen (Schiebetür)
+  const rDoor = new THREE.Mesh(slidingDoorGeo, bodyMat);
+  rDoor.position.set(1.13, 1.0, -1.5);
+  busGroup.add(rDoor);
+  
+  // Scheinwerfer (vorne, links/rechts)
+  const headlightGeo = new THREE.BoxGeometry(0.3, 0.15, 0.1);
+  const headlightL = new THREE.Mesh(headlightGeo, lightMat);
+  headlightL.position.set(-0.7, 0.9, 2.52);
+  busGroup.add(headlightL);
+  const headlightR = new THREE.Mesh(headlightGeo, lightMat);
+  headlightR.position.set(0.7, 0.9, 2.52);
+  busGroup.add(headlightR);
+  
+  // Rücklichter
+  const taillightGeo = new THREE.BoxGeometry(0.3, 0.2, 0.1);
+  const tailL = new THREE.Mesh(taillightGeo, tailMat);
+  tailL.position.set(-0.8, 1.2, -2.52);
+  busGroup.add(tailL);
+  const tailR = new THREE.Mesh(taillightGeo, tailMat);
+  tailR.position.set(0.8, 1.2, -2.52);
+  busGroup.add(tailR);
+  
+  // Chrom-Streifen vorne
+  const chromeStripGeo = new THREE.BoxGeometry(2.3, 0.05, 0.05);
+  const chromeStrip = new THREE.Mesh(chromeStripGeo, chromeMat);
+  chromeStrip.position.set(0, 0.7, 2.52);
+  busGroup.add(chromeStrip);
+  
+  // Kühlergrill
+  const grillGeo = new THREE.BoxGeometry(1.8, 0.3, 0.05);
+  const grillMat = new THREE.MeshPhongMaterial({ color: 0x222222 });
+  const grill = new THREE.Mesh(grillGeo, grillMat);
+  grill.position.set(0, 0.7, 2.53);
+  busGroup.add(grill);
+  
+  // Reifen (4x)
+  const wheelGeo = new THREE.CylinderGeometry(0.35, 0.35, 0.25, 16);
+  const wheelPositions = [
+    [-1.1, 0.35, 1.5],  // Vorne Links
+    [1.1, 0.35, 1.5],   // Vorne Rechts
+    [-1.1, 0.35, -1.5], // Hinten Links
+    [1.1, 0.35, -1.5],  // Hinten Rechts
+  ];
+  wheelPositions.forEach(pos => {
+    const wheel = new THREE.Mesh(wheelGeo, wheelMat);
+    wheel.rotation.z = Math.PI / 2;
+    wheel.position.set(...pos);
+    wheel.castShadow = true;
+    busGroup.add(wheel);
+    
+    // Felge
+    const rimGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.27, 16);
+    const rim = new THREE.Mesh(rimGeo, chromeMat);
+    rim.rotation.z = Math.PI / 2;
+    rim.position.set(...pos);
+    busGroup.add(rim);
+  });
+  
+  // Achsen
+  const axleGeo = new THREE.CylinderGeometry(0.08, 0.08, 2.0, 8);
+  const frontAxle = new THREE.Mesh(axleGeo, chassisMat);
+  frontAxle.rotation.x = Math.PI / 2;
+  frontAxle.position.set(0, 0.15, 1.5);
+  busGroup.add(frontAxle);
+  const rearAxle = new THREE.Mesh(axleGeo, chassisMat);
+  rearAxle.rotation.x = Math.PI / 2;
+  rearAxle.position.set(0, 0.15, -1.5);
+  busGroup.add(rearAxle);
+  
+  // Unterwagen/Rahmen
+  const frameGeo = new THREE.BoxGeometry(0.1, 0.1, 4.8);
+  const frameL = new THREE.Mesh(frameGeo, chassisMat);
+  frameL.position.set(-1.0, 0.1, -0.1);
+  busGroup.add(frameL);
+  const frameR = new THREE.Mesh(frameGeo, chassisMat);
+  frameR.position.set(1.0, 0.1, -0.1);
+  busGroup.add(frameR);
+  
+  // Querelemente Rahmen
+  for (let i = 0; i < 5; i++) {
+    const crossGeo = new THREE.BoxGeometry(2.0, 0.08, 0.08);
+    const cross = new THREE.Mesh(crossGeo, chassisMat);
+    cross.position.set(0, 0.1, -2.0 + i * 1.0);
+    busGroup.add(cross);
+  }
+  
+  // Auspuff (hinten, rechts)
+  const exhaustGeo = new THREE.CylinderGeometry(0.04, 0.04, 0.5, 8);
+  const exhaust = new THREE.Mesh(exhaustGeo, chromeMat);
+  exhaust.position.set(0.8, 0.2, -2.6);
+  busGroup.add(exhaust);
+  
+  // Motor-Haube (vorne, grob angedeutet)
+  const hoodGeo = new THREE.BoxGeometry(1.9, 0.05, 1.2);
+  const hood = new THREE.Mesh(hoodGeo, bodyMat);
+  hood.position.set(0, 1.22, 1.8);
+  busGroup.add(hood);
+  
+  // GPS-HAT Antenne (auf dem Dach)
+  const antennaGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.3, 8);
+  const antenna = new THREE.Mesh(antennaGeo, new THREE.MeshPhongMaterial({ color: 0x333333 }));
+  antenna.position.set(0.3, 2.3, 0.5);
+  busGroup.add(antenna);
+  const antennaTip = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 8), new THREE.MeshPhongMaterial({ color: 0xb7472a }));
+  antennaTip.position.set(0.3, 2.45, 0.5);
+  busGroup.add(antennaTip);
+  
+  // ELM327 Sensor (unter Lenkrad, links)
+  const elmGeo = new THREE.BoxGeometry(0.15, 0.1, 0.1);
+  const elmMat = new THREE.MeshPhongMaterial({ color: 0xb7472a, emissive: 0xb7472a, emissiveIntensity: 0.2 });
+  const elm = new THREE.Mesh(elmGeo, elmMat);
+  elm.position.set(-0.5, 0.5, 1.2);
+  busGroup.add(elm);
+  
+  // Sensor-Label für ELM327
+  const canvas = document.createElement('canvas');
+  canvas.width = 256;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgba(183, 71, 42, 0.8)';
+  ctx.fillRect(0, 0, 256, 64);
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 24px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('ELM327 Sensor', 128, 40);
+  const sensorTexture = new THREE.CanvasTexture(canvas);
+  const labelGeo = new THREE.PlaneGeometry(0.8, 0.2);
+  const label = new THREE.Mesh(labelGeo, new THREE.MeshBasicMaterial({ map: sensorTexture, transparent: true }));
+  label.position.set(-0.5, 0.8, 1.2);
+  label.rotation.y = 0;
+  busGroup.add(label);
+  
+  busGroup.position.y = 0;
+  threeScene.add(busGroup);
+  
+  threeReady = true;
+  
+  // Resize Handler
+  window.addEventListener('resize', () => {
+    if (!container) return;
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    threeCamera.aspect = w / h;
+    threeCamera.updateProjectionMatrix();
+    threeRenderer.setSize(w, h);
+  });
+  
+  // Render Loop
+  function animate() {
+    requestAnimationFrame(animate);
+    if (threeControls) threeControls.update();
+    if (threeRenderer && threeScene && threeCamera) {
+      threeRenderer.render(threeScene, threeCamera);
+    }
+  }
+  animate();
+}
+
+// 3D-Modell initialisieren wenn Tab aktiv wird
+const originalShowTab = window.showTab || function(name) {};
+window.showTab = function(name) {
+  originalShowTab(name);
+  if (name === '3d') {
+    setTimeout(initThreeModel, 100);
+  }
+};
+
+// Falls Tab 3d beim Laden schon aktiv wäre
+if (document.querySelector('[data-tab="3d"]')?.classList.contains('active')) {
+  setTimeout(initThreeModel, 500);
+}
+</script>
