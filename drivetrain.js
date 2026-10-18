@@ -194,6 +194,9 @@
     
     // Animation starten
     startAnimation();
+    
+    // Initialer Tab-Status prüfen
+    checkActiveTab();
   }
 
   // === Demo-Daten initialisieren ===
@@ -633,7 +636,7 @@
     tooltip.style.left = Math.min(x + 15, window.innerWidth - 300) + 'px';
     tooltip.style.top = Math.min(y + 15, window.innerHeight - 150) + 'px';
     
-    document.getElementById('tt-title').textContent = sensor.name;
+    document.getElementById('tooltip-title').textContent = sensor.name;
     
     let content = '';
     if (sensor.notAvailable) {
@@ -648,7 +651,7 @@
       `;
     }
     
-    document.getElementById('tt-content').innerHTML = content;
+    document.getElementById('tooltip-content').innerHTML = content;
   }
 
   function hideTooltip() {
