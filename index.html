@@ -307,195 +307,31 @@ h1{font-size:1.6rem}
     </div>
   </section>
 
-  <!-- ═══ Tab 4: Fahrwerk & Chassis-Draufsicht ═══ -->
+  <!-- ═══ Tab 4: Antriebsstrang-Visualisierung ═══ -->
   <section id="tab-antrieb" class="tabpane">
-    <div class="grid" style="margin-top:24px;grid-template-columns:1fr;">
-      <article class="card">
-        <h3>🔧 VW T6 — Fahrwerk & Chassis-Draufsicht (Unterbau)</h3>
-        <p class="muted">Draufsicht auf das Chassis, Fahrwerk, Achsen, Reifen und Unterbau des VW T6 Caravelle/Transporter (2017, Typ 7H/7N)</p>
-        <svg viewBox="0 0 800 900" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;background:#172126;border-radius:4px;" font-family="Arial,sans-serif">
-          <!-- Background -->
-          <rect x="0" y="0" width="800" height="900" rx="8" fill="#172126"/>
-          
-          <!-- Vehicle outline (T6 bus shape from top) -->
-          <!-- Chassis frame -->
-          <rect x="250" y="80" width="300" height="740" rx="40" fill="#2a3338" stroke="#b7472a" stroke-width="3"/>
-          
-          <!-- Front bumper -->
-          <rect x="240" y="60" width="320" height="40" rx="15" fill="#1a2428" stroke="#b7472a" stroke-width="2"/>
-          <!-- Rear bumper -->
-          <rect x="240" y="780" width="320" height="40" rx="15" fill="#1a2428" stroke="#b7472a" stroke-width="2"/>
-          
-          <!-- Windshield (front) -->
-          <rect x="270" y="70" width="260" height="50" rx="10" fill="#3c7881" opacity="0.4"/>
-          <text x="400" y="102" text-anchor="middle" fill="#f3f1ea" font-size="10">Windschutzscheibe</text>
-          
-          <!-- Rear windows -->
-          <rect x="270" y="740" width="260" height="30" rx="8" fill="#3c7881" opacity="0.3"/>
-          <text x="400" y="760" text-anchor="middle" fill="#f3f1ea" font-size="9">Heckscheibe</text>
-          
-          <!-- Side windows (left) -->
-          <rect x="255" y="150" width="15" height="80" rx="5" fill="#3c7881" opacity="0.3"/>
-          <rect x="255" y="250" width="15" height="80" rx="5" fill="#3c7881" opacity="0.3"/>
-          <rect x="255" y="350" width="15" height="80" rx="5" fill="#3c7881" opacity="0.3"/>
-          <rect x="255" y="450" width="15" height="80" rx="5" fill="#3c7881" opacity="0.3"/>
-          
-          <!-- Side windows (right) -->
-          <rect x="530" y="150" width="15" height="80" rx="5" fill="#3c7881" opacity="0.3"/>
-          <rect x="530" y="250" width="15" height="80" rx="5" fill="#3c7881" opacity="0.3"/>
-          <rect x="530" y="350" width="15" height="80" rx="5" fill="#3c7881" opacity="0.3"/>
-          <rect x="530" y="450" width="15" height="80" rx="5" fill="#3c7881" opacity="0.3"/>
-          
-          <!-- DOOR LINES -->
-          <line x1="400" y1="130" x2="400" y2="300" stroke="#b7472a" stroke-width="1" stroke-dasharray="5 5"/>
-          <text x="400" y="145" text-anchor="middle" fill="#b7472a" font-size="8">Tür</text>
-          
-          <!-- FRONT AXLE (Vorderachse — Independent) -->
-          <g transform="translate(0, 180)">
-            <!-- Axle beam -->
-            <rect x="200" y="-10" width="400" height="20" rx="5" fill="#5a696d"/>
-            <text x="400" y="5" text-anchor="middle" fill="#f3f1ea" font-size="11" font-weight="bold">Vorderachse — Mehrlenkerachse</text>
-            
-            <!-- Left wheel -->
-            <rect x="195" y="-45" width="70" height="90" rx="10" fill="#172126" stroke="#b7472a" stroke-width="2"/>
-            <circle cx="230" cy="0" r="25" fill="none" stroke="#f3f1ea" stroke-width="2"/>
-            <text x="230" y="5" text-anchor="middle" fill="#f3f1ea" font-size="8">V-L</text>
-            
-            <!-- Right wheel -->
-            <rect x="535" y="-45" width="70" height="90" rx="10" fill="#172126" stroke="#b7472a" stroke-width="2"/>
-            <circle cx="570" cy="0" r="25" fill="none" stroke="#f3f1ea" stroke-width="2"/>
-            <text x="570" y="5" text-anchor="middle" fill="#f3f1ea" font-size="8">V-R</text>
-            
-            <!-- Steering linkage -->
-            <line x1="230" y1="0" x2="570" y2="0" stroke="#d6a746" stroke-width="1" stroke-dasharray="3 3"/>
-            <text x="400" y="-60" text-anchor="middle" fill="#d6a746" font-size="9">Lenktrapez</text>
-          </g>
-          
-          <!-- REAR AXLE (Hinterachse — Starrachse) -->
-          <g transform="translate(0, 700)">
-            <!-- Axle beam -->
-            <rect x="200" y="-10" width="400" height="20" rx="5" fill="#5a696d"/>
-            <text x="400" y="5" text-anchor="middle" fill="#f3f1ea" font-size="11" font-weight="bold">Hinterachse — Starrachse mit Spurplaneten</text>
-            
-            <!-- Left wheel -->
-            <rect x="195" y="-55" width="80" height="110" rx="12" fill="#172126" stroke="#b7472a" stroke-width="2"/>
-            <circle cx="235" cy="0" r="32" fill="none" stroke="#f3f1ea" stroke-width="2"/>
-            <text x="235" y="5" text-anchor="middle" fill="#f3f1ea" font-size="8">H-L</text>
-            
-            <!-- Right wheel -->
-            <rect x="525" y="-55" width="80" height="110" rx="12" fill="#172126" stroke="#b7472a" stroke-width="2"/>
-            <circle cx="565" cy="0" r="32" fill="none" stroke="#f3f1ea" stroke-width="2"/>
-            <text x="565" y="5" text-anchor="middle" fill="#f3f1ea" font-size="8">H-R</text>
-            
-            <!-- Differential -->
-            <circle cx="400" cy="0" r="18" fill="#b7472a" opacity="0.6"/>
-            <text x="400" y="4" text-anchor="middle" fill="#fff" font-size="7">Diff</text>
-          </g>
-          
-          <!-- FRONT SUSPENSION (Vorderachse — Feder/Dämpfer) -->
-          <g transform="translate(0, 210)">
-            <!-- Left coil spring -->
-            <line x1="280" y1="-30" x2="280" y2="30" stroke="#d6a746" stroke-width="3"/>
-            <path d="M280,-30 L270,-20 L290,-10 L270,0 L290,10 L270,20 L280,30" fill="none" stroke="#d6a746" stroke-width="2"/>
-            
-            <!-- Right coil spring -->
-            <line x1="520" y1="-30" x2="520" y2="30" stroke="#d6a746" stroke-width="3"/>
-            <path d="M520,-30 L510,-20 L530,-10 L510,0 L530,10 L510,20 L520,30" fill="none" stroke="#d6a746" stroke-width="2"/>
-            
-            <text x="280" y="-45" text-anchor="middle" fill="#d6a746" font-size="9">Schraubenfeder + Gasdruckdämpfer (McPherson)</text>
-            <text x="520" y="-45" text-anchor="middle" fill="#d6a746" font-size="9">Stabilisator</text>
-            <line x1="320" y1="0" x2="480" y2="0" stroke="#d6a746" stroke-width="2"/>
-          </g>
-          
-          <!-- REAR SUSPENSION (Hinterachse — Blattfeder/Stabilisator) -->
-          <g transform="translate(0, 670)">
-            <!-- Leaf spring (left) -->
-            <path d="M280,-50 L280,50" stroke="#d6a746" stroke-width="4" stroke-linecap="round"/>
-            <path d="M270,-40 L290,-30 L270,-20 L290,-10 L270,0 L290,10 L270,20 L290,30 L270,40" fill="none" stroke="#d6a746" stroke-width="1.5"/>
-            
-            <!-- Leaf spring (right) -->
-            <path d="M520,-50 L520,50" stroke="#d6a746" stroke-width="4" stroke-linecap="round"/>
-            <path d="M510,-40 L530,-30 L510,-20 L530,-10 L510,0 L530,10 L510,20 L530,30 L510,40" fill="none" stroke="#d6a746" stroke-width="1.5"/>
-            
-            <text x="400" y="-65" text-anchor="middle" fill="#d6a746" font-size="9">Blattfedern + Stoßdämpfer (Twin-tube)</text>
-            <text x="400" y="75" text-anchor="middle" fill="#c8c5ba" font-size="9">Starrachse mit Längs- und Querführung</text>
-          </g>
-          
-          <!-- BRAKE DISCS -->
-          <g transform="translate(0, 180)">
-            <!-- Front left brake -->
-            <circle cx="230" cy="-15" r="15" fill="none" stroke="#d9534f" stroke-width="1.5" stroke-dasharray="3 2"/>
-            <text x="230" y="-20" text-anchor="middle" fill="#d9534f" font-size="7">Scheibenbremse</text>
-            
-            <!-- Front right brake -->
-            <circle cx="570" cy="-15" r="15" fill="none" stroke="#d9534f" stroke-width="1.5" stroke-dasharray="3 2"/>
-            
-            <!-- Rear left brake -->
-            <circle cx="235" cy="705" r="18" fill="none" stroke="#d9534f" stroke-width="1.5" stroke-dasharray="3 2"/>
-            <text x="235" y="700" text-anchor="middle" fill="#d9534f" font-size="7">Scheibenbremse</text>
-            
-            <!-- Rear right brake -->
-            <circle cx="565" cy="705" r="18" fill="none" stroke="#d9534f" stroke-width="1.5" stroke-dasharray="3 2"/>
-          </g>
-          
-          <!-- CHASSIS SIDEMEMBERS (Rahmen longitudinal) -->
-          <line x1="280" y1="120" x2="280" y2="800" stroke="#b7472a" stroke-width="3"/>
-          <line x1="520" y1="120" x2="520" y2="800" stroke="#b7472a" stroke-width="3"/>
-          <text x="260" y="450" text-anchor="middle" fill="#b7472a" font-size="9" transform="rotate(-90,260,450)">Rahmenlängsträger</text>
-          
-          <!-- Cross members -->
-          <line x1="280" y1="300" x2="520" y2="300" stroke="#b7472a" stroke-width="1.5" stroke-dasharray="4 4"/>
-          <line x1="280" y1="500" x2="520" y2="500" stroke="#b7472a" stroke-width="1.5" stroke-dasharray="4 4"/>
-          <line x1="280" y1="600" x2="520" y2="600" stroke="#b7472a" stroke-width="1.5" stroke-dasharray="4 4"/>
-          
-          <!-- Exhaust system (side) -->
-          <path d="M280,200 L240,350 L240,700 L260,820" fill="none" stroke="#c8c5ba" stroke-width="2" stroke-dasharray="5 3"/>
-          <text x="220" y="500" text-anchor="middle" fill="#c8c5ba" font-size="8" transform="rotate(-90,220,500)">Auspuff</text>
-          
-          <!-- Fuel tank -->
-          <ellipse cx="400" cy="650" rx="60" ry="25" fill="#3c7881" opacity="0.5" stroke="#5a696d" stroke-width="1"/>
-          <text x="400" y="654" text-anchor="middle" fill="#f3f1ea" font-size="9">Kraftstofftank (Seitlich)</text>
-          
-          <!-- Battery (rear right) -->
-          <rect x="480" y="720" width="40" height="25" rx="4" fill="#172126" stroke="#f3f1ea" stroke-width="1"/>
-          <text x="500" y="736" text-anchor="middle" fill="#f3f1ea" font-size="8">Batterie</text>
-          
-          <!-- Title -->
-          <text x="400" y="35" text-anchor="middle" fill="#b7472a" font-size="16" font-weight="bold">VW T6 — Fahrwerk &amp; Chassis (Draufsicht)</text>
-          <text x="400" y="55" text-anchor="middle" fill="#c8c5ba" font-size="11">Typ 7H/7N · Baujahr 2017 · 2.0 TDI · Starrachse hinten, Mehrlenker vorne</text>
-          
-          <!-- Legend -->
-          <g transform="translate(50, 850)">
-            <circle cx="10" cy="0" r="5" fill="#d9534f"/>
-            <text x="25" y="4" fill="#c8c5ba" font-size="10">Scheibenbremsen (4x)</text>
-            <line x1="120" y1="0" x2="140" y2="0" stroke="#d6a746" stroke-width="3"/>
-            <text x="155" y="4" fill="#c8c5ba" font-size="10">Feder/Dämpfer</text>
-            <rect x="240" y="-5" width="15" height="10" rx="2" fill="#b7472a" stroke="#b7472a"/>
-            <text x="265" y="4" fill="#c8c5ba" font-size="10">Chassis-Rahmen</text>
-          </g>
-        </svg>
-      </article>
+    <div style="margin-top:24px;position:relative;">
+      <canvas id="drivetrain-canvas" width="800" height="700" style="width:100%;height:auto;background:#0d1117;border-radius:8px;cursor:pointer;box-shadow:0 0 40px rgba(0,255,100,0.05);"></canvas>
+      <div id="drivetrain-tooltip" style="display:none;position:fixed;background:rgba(13,17,23,0.95);border:1px solid #238636;border-radius:6px;padding:12px;color:#f3f1ea;font-size:13px;pointer-events:none;z-index:1000;backdrop-filter:blur(10px);max-width:280px;box-shadow:0 0 20px rgba(0,255,100,0.2);">
+        <div style="font-weight:bold;color:#3fb950;margin-bottom:6px;" id="tooltip-title"></div>
+        <div id="tooltip-content"></div>
+      </div>
     </div>
-    
     <div class="grid" style="margin-top:18px;">
       <article class="card">
-        <h3>Fahrwerkskomponenten — Detailübersicht</h3>
-        <div class="stat"><span>Vorderachse</span><b>Mehrlenkerachse (McPherson)</b></div>
-        <div class="stat"><span>Hinterachse</span><b>Starrachse mit Spurplaneten-Übersetzung</b></div>
-        <div class="stat"><span>Federung vorn</span><b>Schraubenfeder + Gasdruckdämpfer</b></div>
-        <div class="stat"><span>Federung hinten</span><b>Blattfedern + Twin-tube Stoßdämpfer</b></div>
-        <div class="stat"><span>Bremse (vorn/hinten)</span><b>Scheibenbremsen (allrad)</b></div>
-        <div class="stat"><span>Stabilisator</span><b>Vorn + Hinten (je nach Ausstattung)</b></div>
+        <h3>Antriebssystem — Status</h3>
+        <div class="stat"><span>Motor-Status</span><b id="dt-engine-status">Läuft</b></div>
+        <div class="stat"><span>Getriebe</span><b id="dt-gear">—</b></div>
+        <div class="stat"><span>Motor-Temperatur</span><b id="dt-engine-temp">— °C</b></div>
+        <div class="stat"><span>Ladedruck</span><b id="dt-boost">— bar</b></div>
+        <div class="stat"><span>DPF-Status</span><b id="dt-dpf">—</b></div>
       </article>
       <article class="card">
-        <h3>Reifengrößen (Werksangabe)</h3>
-        <table class="bom-table">
-          <tr><th>Position</th><th>Reifengröße</th><th>Luftdruck</th></tr>
-          <tr><td>Vorne</td><td>205/70 R15C</td><td>2.3 bar (teer)</td></tr>
-          <tr><td>Hinten</td><td>205/70 R15C</td><td>2.9 bar (voll)</td></tr>
-          <tr><td>Optional</td><td>215/70 R16C / 225/65 R16C</td><td>s. Plakett</td></tr>
-        </table>
-        <p class="muted" style="margin-top:12px;">Reifen: C-Kennung = Commercial (Transporter)</p>
+        <h3>Reifendruck</h3>
+        <div class="stat"><span>Vorne Links</span><b id="dt-tpfl">— bar</b></div>
+        <div class="stat"><span>Vorne Rechts</span><b id="dt-tpfr">— bar</b></div>
+        <div class="stat"><span>Hinten Links</span><b id="dt-tp rl">— bar</b></div>
+        <div class="stat"><span>Hinten Rechts</span><b id="dt-tpr">— bar</b></div>
+        <p class="muted" style="margin-top:12px;">Klicke auf Sensormarker für Details · Grüne Partikel = Datenfluss aktiv</p>
       </article>
     </div>
   </section>
@@ -533,11 +369,14 @@ h1{font-size:1.6rem}
   </section>
 
 </main>
+
+<script src="drivetrain.js"></script>
 <script>
 function showTab(name){
   document.querySelectorAll('.tabpane').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
   document.querySelectorAll('.tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
   if (name === 'telemetrie' && window.__map) setTimeout(() => window.__map.invalidateSize(), 60);
+  if (name === 'antrieb' && typeof initDrivetrain === 'function') setTimeout(initDrivetrain, 100);
 }
 </script>
 
