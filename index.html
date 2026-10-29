@@ -1,140 +1,233 @@
 <!doctype html>
 <html lang="de">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<title>VW T6 Digital Twin — Telemetrie</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<style>
-:root{--ink:#172126;--muted:#5a696d;--paper:#f3f1ea;--panel:#fffdf8;--line:#c8c5ba;--accent:#b7472a;}
-*{box-sizing:border-box}
-body{margin:0;color:var(--ink);background:var(--paper);font-family:Georgia,"Times New Roman",serif}
-.shell{width:min(1180px,calc(100% - 32px));margin:0 auto}
-.masthead{background:var(--panel);border-bottom:1px solid var(--line);padding:32px 0}
-h1{margin:0;font-size:2.2rem;font-weight:400}
-.eyebrow{font:700 .7rem Arial,sans-serif;letter-spacing:.08em;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin-top:24px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:16px;font-family:Arial,sans-serif}
-.card h3{margin:0 0 10px;font-family:Georgia;font-size:1.1rem;font-weight:400}
-#map{height:360px;border-radius:4px}
-.muted{color:var(--muted);font-size:.85rem}
-.stat{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--line);font-size:.95rem}
-.stat b{font-size:1.1rem}
-footer{margin-top:48px;padding:20px 0;background:#172126;color:#e8e6df;font:.8rem Arial,sans-serif}
-@media (max-width:760px){.grid{grid-template-columns:1fr}}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#050608">
+  <meta name="description" content="VW T6 Digital Twin: Antriebsstrang, animierte Stoff- und Informationsflüsse, Telemetrie und Position.">
+  <title>VW T6 · Digital Twin</title>
+  <link rel="stylesheet" href="dashboard.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script defer src="garage.js"></script>
+  <script defer src="dashboard.js"></script>
 </head>
 <body>
-<header class="masthead"><div class="shell">
-  <p class="eyebrow">VW T6 · 2017 · Digital Twin</p>
-  <h1>Telemetrie &amp; Position</h1>
-  <p class="muted" id="last-update">Lade Daten…</p>
-</div></header>
+  <header class="masthead shell">
+    <a class="brand" href="./" aria-label="VW T6 Digital Twin Startseite"><span class="brand-mark">T6</span><span>VOLKSWAGEN <strong>DIGITAL TWIN</strong></span></a>
+    <div class="connection"><span class="status-dot"></span><span id="connection-state">Daten werden geladen</span></div>
+  </header>
+  <main class="shell">
+    <section class="intro">
+      <div><p class="eyebrow">CARAVELLE / 2017 / DIGITAL TWIN</p><h1>Ein Bus. <span>Alles im Blick.</span></h1><p class="subtitle">Antrieb verstehen. Signale verfolgen. Fehler lokalisieren. Dein T6 im digitalen Röntgenblick.</p></div>
+      <div class="sync"><span class="micro">LETZTER DATENABGLEICH</span><p id="last-update" role="status">Verbindung zum Datenexport wird hergestellt …</p></div>
+    </section>
 
-<main class="shell">
-  <div class="grid">
-    <article class="card">
-      <h3>Letzte Position</h3>
-      <div id="map"></div>
-      <p class="muted" id="last-pos-meta">—</p>
-    </article>
+    <nav class="view-tabs" role="tablist" aria-label="Dashboard-Bereiche">
+      <button id="tab-cockpit" type="button" role="tab" aria-selected="true" aria-controls="view-cockpit" data-view="cockpit"><span>01</span>Cockpit</button>
+      <button id="tab-diagnose" type="button" role="tab" aria-selected="false" aria-controls="view-diagnose" data-view="diagnose" tabindex="-1"><span>02</span>Diagnose <b id="diagnosis-count">—</b></button>
+      <button id="tab-telemetrie" type="button" role="tab" aria-selected="false" aria-controls="view-telemetrie" data-view="telemetrie" tabindex="-1"><span>03</span>Telemetrie</button>
+      <button id="tab-system" type="button" role="tab" aria-selected="false" aria-controls="view-system" data-view="system" tabindex="-1"><span>04</span>System</button>
+      <button id="tab-garage" type="button" role="tab" aria-selected="false" aria-controls="view-garage" data-view="garage" tabindex="-1"><span>05</span>3D-Garage</button>
+    </nav>
+    <section id="view-cockpit" class="view-panel" role="tabpanel" aria-labelledby="tab-cockpit">
+    <section class="metrics" aria-label="Letzte gemessene Fahrzeugwerte">
+      <article class="metric"><span class="micro">DREHZAHL</span><div><b id="s-rpm">—</b><span>U/min</span></div><span class="metric-note">Motor / OBD-II</span><i class="spark green"></i></article>
+      <article class="metric"><span class="micro">GESCHWINDIGKEIT</span><div><b id="s-speed">—</b><span>km/h</span></div><span class="metric-note">Fahrzeug / OBD-II</span><i class="spark green"></i></article>
+      <article class="metric"><span class="micro">KÜHLMITTEL</span><div><b id="s-cool">—</b><span>°C</span></div><span class="metric-note">Temperatur / OBD-II</span><i class="spark yellow"></i></article>
+      <article class="metric"><span class="micro">BORDSPANNUNG</span><div><b id="s-volt">—</b><span>V</span></div><span class="metric-note">Bordnetz / OBD-II</span><i class="spark green"></i></article>
+      <article class="metric"><span class="micro">KRAFTSTOFF</span><div><b id="s-fuel">—</b><span>%</span></div><span class="metric-note">Tankfüllstand / OBD-II</span><i class="spark green"></i></article>
+    </section>
 
-    <article class="card">
-      <h3>Aktuelle Werte</h3>
-      <div class="stat"><span>Drehzahl</span><b id="s-rpm">—</b></div>
-      <div class="stat"><span>Geschwindigkeit</span><b id="s-speed">—</b></div>
-      <div class="stat"><span>Kühlmittel</span><b id="s-cool">—</b></div>
-      <div class="stat"><span>Bordspannung</span><b id="s-volt">—</b></div>
-      <div class="stat"><span>Kraftstoff</span><b id="s-fuel">—</b></div>
-    </article>
-  </div>
+    <section class="twin-panel panel" aria-labelledby="twin-title">
+      <div class="panel-heading"><div><p class="eyebrow">01 / FAHRZEUG-EXPLORER</p><h2 id="twin-title">Technik, die verbindet.</h2></div><span class="chip">DRAUFSICHT · SCHEMATISCH</span></div>
+      <div class="twin-layout">
+        <aside class="system-list">
+          <p class="micro">STOFF &amp; ENERGIE</p>
+          <div class="system-card"><span class="system-number green-text">01</span><div><h3>Kraftstoffversorgung</h3><p>Vom Tank durch die Vorlaufleitung zum Motor.</p><span class="system-tag green-text">TANK → MOTOR</span></div></div>
+          <div class="system-card"><span class="system-number green-text">02</span><div><h3>Antriebsstrang</h3><p>Motor, Getriebe und Differential übertragen die Kraft auf die Vorderräder.</p><span class="system-tag green-text">DREHMOMENT → BEWEGUNG</span></div></div>
+          <div class="technical-note"><span class="crosshair">+</span> Röntgenansicht<br>Karosserie transparent. Technik sichtbar.</div>
+        </aside>
 
-  <div class="grid" style="margin-top:18px;">
-    <article class="card"><h3>Drehzahl (24h)</h3><canvas id="c-rpm"></canvas></article>
-    <article class="card"><h3>Geschwindigkeit (24h)</h3><canvas id="c-speed"></canvas></article>
-    <article class="card"><h3>Kühlmitteltemperatur (24h)</h3><canvas id="c-cool"></canvas></article>
-    <article class="card"><h3>Bordspannung (24h)</h3><canvas id="c-volt"></canvas></article>
-  </div>
-</main>
+        <div class="vehicle-stage" id="vehicle-stage">
+          <div class="stage-coordinate top">FRONT / FAHRTRICHTUNG ↑</div>
+          <svg class="vehicle" viewBox="0 0 640 880" role="img" aria-labelledby="vehicle-title vehicle-desc">
+            <title id="vehicle-title">VW T6 in Draufsicht mit transparentem Aufbau</title>
+            <desc id="vehicle-desc">Schematischer T6 Caravelle mit Frontmotor und Frontantrieb. Grüne Pfeile zeigen Kraftstoff und Kraftübertragung, gelbe Pfeile die Informationswege. Graue Ringe sind mögliche Diagnosebereiche. Nur gespeicherte OBD-II-Fehlercodes aktivieren rote, transparente Diagnose-Hotspots; ihre Position ist eine ungefähre Systemzuordnung. Keine Live-Durchflussmessung.</desc>
+            <defs>
+              <linearGradient id="body-paint" x1="0" x2="1"><stop stop-color="#345166" stop-opacity=".6"/><stop offset=".3" stop-color="#9bb9c9" stop-opacity=".12"/><stop offset=".7" stop-color="#41657c" stop-opacity=".2"/><stop offset="1" stop-color="#7294a7" stop-opacity=".55"/></linearGradient>
+              <linearGradient id="glass" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#75bad5" stop-opacity=".4"/><stop offset="1" stop-color="#162b40" stop-opacity=".3"/></linearGradient>
+              <linearGradient id="engine-metal" x2="0" y2="1"><stop stop-color="#486474"/><stop offset="1" stop-color="#1a2e3b"/></linearGradient>
+              <pattern id="stage-grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#67859c" stroke-opacity=".09"/></pattern>
+              <filter id="green-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter>
+              <filter id="yellow-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter>
+              <marker id="arrow-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="m0 0 10 5-10 5z" fill="#42f5ac"/></marker>
+              <marker id="arrow-yellow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="m0 0 10 5-10 5z" fill="#f5d547"/></marker>
+              <path id="fuel-route" d="M284 581H251V240H292V205"/>
+              <path id="torque-route" d="M320 206H379V261H320"/>
+              <path id="left-axle" d="M320 261H188"/>
+              <path id="right-axle" d="M379 261H452"/>
+              <path id="sensor-route" d="M333 176H402V338H380"/>
+              <path id="obd-route" d="M380 358V399H340"/>
+              <path id="pi-route" d="M340 418V470H390V510"/>
+              <path id="gps-route" d="M397 638H422V548H408"/>
+              <path id="export-route" d="M408 529H492V707H535"/>
+            </defs>
+            <rect width="640" height="880" fill="url(#stage-grid)"/>
+            <g class="dimension" fill="none" stroke="#436077" stroke-width="1"><path d="M132 101H105V793H132M99 101H111M99 793H111M183 827V846H455V827"/><path d="M320 66V809" stroke-dasharray="4 10"/></g>
+            <text class="svg-micro" transform="translate(92 490) rotate(-90)">T6 / SYSTEM VIEW</text>
+            <ellipse cx="320" cy="466" rx="177" ry="354" fill="#000" opacity=".3"/>
+            <!-- Wheels, mirrors and the characteristic short-nose van silhouette. -->
+            <g fill="#080d15" stroke="#526778" stroke-width="2">
+              <rect x="161" y="223" width="35" height="91" rx="11"/><rect x="444" y="223" width="35" height="91" rx="11"/>
+              <rect x="161" y="650" width="35" height="91" rx="11"/><rect x="444" y="650" width="35" height="91" rx="11"/>
+              <path d="m186 306-39 8v25l39-7M454 306l39 8v25l-39-7" fill="#355166"/>
+            </g>
+            <g stroke="#9bb8c9" stroke-width="2">
+              <path d="M220 100Q320 76 420 100Q452 108 455 160L461 711Q461 772 425 786Q320 803 215 786Q179 772 179 711L185 160Q188 108 220 100Z" fill="url(#body-paint)"/>
+              <path d="M208 129Q320 110 432 129M195 163Q320 143 445 163M192 752Q320 772 448 752" fill="none" opacity=".6"/>
+              <path d="M201 294Q320 267 439 294L429 359Q320 338 211 359Z" fill="url(#glass)"/>
+              <path d="m194 364 13 11 1 112-14 14ZM446 364l-13 11-1 112 14 14Z" fill="url(#glass)" opacity=".8"/>
+              <path d="m194 511 14-10v125l-14 8ZM446 511l-14-10v125l14 8Z" fill="url(#glass)" opacity=".5"/>
+              <path d="M210 718Q320 733 430 718L427 754Q320 768 213 754Z" fill="url(#glass)"/>
+              <path d="M220 477V697Q320 714 420 697V477M232 495V685M408 495V685" fill="none" opacity=".17"/>
+              <path d="M190 369V713M450 369V713M197 492H215M425 492H443M198 641H216M424 641H442" fill="none" opacity=".55"/>
+            </g>
+            <g fill="#caeaff" class="headlights"><path d="m204 113 47-9 4 18-53 10Z"/><path d="m436 113-47-9-4 18 53 10Z"/></g>
+            <g fill="#ff617b"><rect x="190" y="745" width="9" height="28" rx="3"/><rect x="441" y="745" width="9" height="28" rx="3"/></g>
+            <path d="M277 105H363" stroke="#9bb8c9" stroke-width="5" stroke-linecap="round"/>
+            <g opacity=".5" fill="#283f52" stroke="#7994a8">
+              <rect x="222" y="380" width="66" height="84" rx="15"/><rect x="352" y="380" width="66" height="84" rx="15"/>
+              <rect x="231" y="373" width="48" height="19" rx="7"/><rect x="361" y="373" width="48" height="19" rx="7"/>
+              <circle cx="254" cy="366" r="22" fill="none" stroke-width="4"/><path d="m240 351 14 15 15-15M254 366v21"/>
+              <g class="rear-seats">
+                <rect x="222" y="492" width="59" height="68" rx="10"/><rect x="290" y="492" width="59" height="68" rx="10"/><rect x="358" y="492" width="59" height="68" rx="10"/>
+                <rect x="231" y="485" width="41" height="16" rx="5"/><rect x="299" y="485" width="41" height="16" rx="5"/><rect x="367" y="485" width="41" height="16" rx="5"/>
+                <rect x="222" y="622" width="59" height="68" rx="10"/><rect x="290" y="622" width="59" height="68" rx="10"/><rect x="358" y="622" width="59" height="68" rx="10"/>
+                <rect x="231" y="615" width="41" height="16" rx="5"/><rect x="299" y="615" width="41" height="16" rx="5"/><rect x="367" y="615" width="41" height="16" rx="5"/>
+              </g>
+            </g>
+            <!-- Chassis and front-drive components are schematic, not a workshop diagram. -->
+            <g fill="none" stroke="#567084"><path d="M232 282V735M408 282V735" stroke-width="7" opacity=".3"/><path d="M193 694H447" stroke-width="9"/><path d="M218 680l-26 14 26 20M422 680l26 14-26 20" stroke-width="3"/></g>
+            <g>
+              <rect x="263" y="165" width="89" height="68" rx="9" fill="url(#engine-metal)" stroke="#9bb8c9" stroke-width="2"/>
+              <path d="M278 176v39M292 176v39M306 176v39M320 176v39" stroke="#93b4bf" stroke-width="6"/>
+              <rect x="275" y="223" width="61" height="15" rx="3" fill="#1b3639" stroke="#42f5ac"/>
+              <path d="m352 191 35 9 12 34-11 21h-34Z" fill="#2a4653" stroke="#9bb8c9" stroke-width="2"/>
+              <circle cx="369" cy="260" r="16" fill="#162d35" stroke="#42f5ac"/>
+              <rect x="208" y="172" width="36" height="49" rx="4" fill="#203846" stroke="#99b7c6"/><text x="226" y="193" text-anchor="middle" fill="#cde5ec" font-size="16">+</text>
+              <rect x="270" y="550" width="78" height="110" rx="18" fill="#173c36" fill-opacity=".8" stroke="#42f5ac" stroke-opacity=".65"/>
+              <path d="M282 568h52M282 642h52" stroke="#42f5ac" stroke-opacity=".3"/>
+              <text x="309" y="601" class="component-text" text-anchor="middle">TANK</text><text x="309" y="620" class="svg-micro" text-anchor="middle">DIESEL</text>
+              <rect x="352" y="327" width="55" height="41" rx="6" fill="#36301b" stroke="#f5d547"/><text x="379" y="352" text-anchor="middle" class="component-text">ECU</text>
+              <rect x="299" y="396" width="44" height="29" rx="5" fill="#36301b" stroke="#f5d547"/><text x="321" y="415" text-anchor="middle" class="component-text">OBD</text>
+              <rect x="365" y="509" width="47" height="41" rx="5" fill="#36301b" stroke="#f5d547"/><rect x="377" y="519" width="19" height="18" rx="2" fill="none" stroke="#f5d547"/>
+              <rect x="375" y="622" width="35" height="31" rx="7" fill="#36301b" stroke="#f5d547"/><path d="M384 640q9-15 18 0m-14-5q5-7 10 0" fill="none" stroke="#f5d547"/>
+            </g>
+            <g class="flow-layer energy-flow" fill="none" stroke="#42f5ac">
+              <g class="flow-glow" stroke-width="9" filter="url(#green-glow)"><use href="#fuel-route"/><use href="#torque-route"/><use href="#left-axle"/><use href="#right-axle"/></g>
+              <g class="flow-track" stroke-width="2"><use href="#fuel-route"/><use href="#torque-route"/><use href="#left-axle"/><use href="#right-axle"/></g>
+              <g class="flow-particles" stroke-width="4"><use href="#fuel-route"/><use href="#torque-route"/><use href="#left-axle"/><use href="#right-axle"/></g>
+              <path d="M251 455V421M251 310V276M320 261H225M395 261H433" stroke-width="2" marker-end="url(#arrow-green)"/>
+              <circle class="pulse-node" cx="292" cy="205" r="8"/><circle class="pulse-node delay" cx="369" cy="261" r="23"/>
+            </g>
+            <g class="flow-layer information-flow" fill="none" stroke="#f5d547">
+              <g class="flow-glow" stroke-width="8" filter="url(#yellow-glow)"><use href="#sensor-route"/><use href="#obd-route"/><use href="#pi-route"/><use href="#gps-route"/><use href="#export-route"/></g>
+              <g class="flow-track" stroke-width="1.5"><use href="#sensor-route"/><use href="#obd-route"/><use href="#pi-route"/><use href="#gps-route"/><use href="#export-route"/></g>
+              <g class="flow-particles data-particles" stroke-width="3"><use href="#sensor-route"/><use href="#obd-route"/><use href="#pi-route"/><use href="#gps-route"/><use href="#export-route"/></g>
+              <path d="M402 270V307M340 443V464M492 625V655" stroke-width="2" marker-end="url(#arrow-yellow)"/>
+              <circle class="pulse-node" cx="388" cy="529" r="30"/>
+            </g>
+            <g class="svg-labels" fill="none" stroke="#647e94" stroke-width="1">
+              <path d="M278 183H123V166H56"/><path d="M389 222H510V206H574"/><path d="M271 603H136V591H56"/>
+              <path d="M407 346H493V330H574"/><path d="M411 530H507V492H574"/><path d="M409 638H516V616H574"/>
+            </g>
+            <g class="component-text"><text x="56" y="155">TDI / MOTOR</text><text x="574" y="195" text-anchor="end">GETRIEBE</text><text x="56" y="580">KRAFTSTOFF</text><text x="574" y="319" text-anchor="end">STEUERGERÄT</text><text x="574" y="481" text-anchor="end">RASPBERRY Pi</text><text x="574" y="605" text-anchor="end">GPS</text></g>
+            <g transform="translate(514 691)"><rect width="75" height="42" rx="8" fill="#282516" stroke="#f5d547" stroke-opacity=".6"/><text x="37" y="709" text-anchor="middle" class="component-text">SYNC</text><text x="37" y="723" text-anchor="middle" class="svg-micro">→ NUC</text></g>
+            <g class="diagnostic-hotspots">
+              <g class="sensor-hotspot" data-component="engine" transform="translate(308 195)"><title>Motor: möglicher Diagnosebereich, kein Fehlernachweis</title><circle class="hotspot-halo" r="42"/><circle class="hotspot-ring" r="18"/><circle class="hotspot-pin" r="4"/></g>
+              <g class="sensor-hotspot" data-component="transmission" transform="translate(374 238)"><title>Getriebe: möglicher Diagnosebereich, kein Fehlernachweis</title><circle class="hotspot-halo" r="37"/><circle class="hotspot-ring" r="15"/><circle class="hotspot-pin" r="4"/></g>
+              <g class="sensor-hotspot" data-component="cooling" transform="translate(319 148)"><title>Kühlung: möglicher Diagnosebereich, kein Fehlernachweis</title><circle class="hotspot-halo" r="34"/><circle class="hotspot-ring" r="13"/><circle class="hotspot-pin" r="4"/></g>
+              <g class="sensor-hotspot" data-component="electrical" transform="translate(225 198)"><title>Elektrik: möglicher Diagnosebereich, kein Fehlernachweis</title><circle class="hotspot-halo" r="34"/><circle class="hotspot-ring" r="13"/><circle class="hotspot-pin" r="4"/></g>
+              <g class="sensor-hotspot" data-component="fuel" transform="translate(308 580)"><title>Kraftstoff: möglicher Diagnosebereich, kein Fehlernachweis</title><circle class="hotspot-halo" r="39"/><circle class="hotspot-ring" r="17"/><circle class="hotspot-pin" r="4"/></g>
+              <g class="sensor-hotspot" data-component="exhaust" transform="translate(383 681)"><title>Abgas: möglicher Diagnosebereich, kein Fehlernachweis</title><circle class="hotspot-halo" r="36"/><circle class="hotspot-ring" r="15"/><circle class="hotspot-pin" r="4"/></g>
+              <g class="sensor-hotspot unlocated" data-component="unknown" transform="translate(539 774)"><title>Fehler ohne verifizierte Systemzuordnung</title><circle class="hotspot-halo" r="30"/><circle class="hotspot-ring" r="13"/><circle class="hotspot-pin" r="4"/><text y="31" text-anchor="middle" class="svg-micro">UNVERORTET</text></g>
+            </g>
+            <text x="320" y="840" text-anchor="middle" class="svg-micro">T6 CARAVELLE / 8 SITZE / 2 + 3 + 3</text>
+          </svg>
+          <span class="stage-corner left">X-RAY / 01</span><span class="stage-corner right">FRONTANTRIEB*</span>
+        </div>
 
-<footer><div class="shell">VW T6 Digital Twin · Daten via Tailscale · aktualisiert alle 5 Minuten</div></footer>
+        <aside class="system-list information-list">
+          <p class="micro">INFORMATION &amp; VERNETZUNG</p>
+          <div class="system-card"><span class="system-number yellow-text">03</span><div><h3>Fahrzeugdaten</h3><p>Motorsignale und gespeicherte Fehlercodes über OBD-II zum Raspberry Pi.</p><span class="system-tag yellow-text">SENSOREN → EDGE</span></div></div>
+          <div class="system-card"><span class="system-number yellow-text">04</span><div><h3>Digitaler Zwilling</h3><p>GPS, Telemetrie und Diagnose-Snapshots per Tailscale zum NUC und ins Dashboard.</p><span class="system-tag yellow-text">BUS → NUC → DASHBOARD</span></div></div>
+          <div class="signal-box"><span class="micro">DATENPFAD</span><div class="signal-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="muted">Schematische Signalvisualisierung</span></div>
+        </aside>
+      </div>
+      <div class="flow-controls" aria-label="Visualisierung steuern">
+        <div class="legend-controls"><button type="button" class="flow-toggle" data-layer="energy-flow" aria-pressed="true"><span class="legend-dot green"></span>Stoff &amp; Energie</button><button type="button" class="flow-toggle" data-layer="information-flow" aria-pressed="true"><span class="legend-dot yellow"></span>Information</button><button type="button" class="diagnosis-link" data-open-diagnosis><span class="legend-dot red"></span><span id="hotspot-summary">Diagnose unbekannt</span> →</button></div>
+        <button type="button" class="pause-button" id="pause-animation" data-pause-animation aria-pressed="false">Animation pausieren</button>
+      </div>
+      <p class="diagram-note">* Vereinfachte Frontantriebsdarstellung. Grüne und gelbe Ströme sind illustrativ, keine Live-Messung. Graue Ringe: mögliche Diagnosebereiche. Rot: gespeicherte OBD-II-Befunde, nur ungefähr einem System zugeordnet — kein Nachweis eines defekten Bauteils. Details und Datenalter unter Diagnose.</p>
+    </section>
+    </section>
 
-<script>
-const fmt = (t) => new Date(t*1000).toLocaleString('de-DE');
-const fmtHM = (t) => new Date(t*1000).toLocaleTimeString('de-DE', {hour:'2-digit',minute:'2-digit'});
+    <section id="view-diagnose" class="view-panel" role="tabpanel" aria-labelledby="tab-diagnose" hidden>
+      <div class="section-heading"><div><p class="eyebrow">02 / OBD-II HEALTH MONITOR</p><h2>Signale verstehen. Nicht raten.</h2></div><span class="chip">READ ONLY · MODE 03</span></div>
+      <div class="diagnosis-overview"><article class="panel diagnosis-status"><span class="micro">DIAGNOSESTATUS</span><h3 id="diagnosis-status">Noch keine Diagnose verfügbar</h3><p id="diagnosis-meta" class="muted">Wartet auf einen OBD-II-Diagnose-Snapshot vom Fahrzeug.</p></article><article class="panel diagnosis-status"><span class="micro">MOTORKONTROLLLEUCHTE / MIL</span><h3 id="diagnosis-mil">Unbekannt</h3><p class="muted">Status aus dem letzten Ausleseversuch. Keine Live-Überwachung.</p></article></div>
+      <div class="diagnostic-layout"><article class="panel"><div class="panel-heading"><div><p class="eyebrow">FEHLERSPEICHER</p><h2>Gespeicherte Fehlercodes</h2></div><span class="chip" id="dtc-count">—</span></div><div id="dtc-list" class="dtc-list" role="status"><p class="empty-state">Es liegen noch keine Diagnosedaten vor.</p></div></article><aside class="panel diagnosis-explainer"><p class="eyebrow">WAS BEDEUTET ROT?</p><h3>Ein Hinweis. Keine Ferndiagnose.</h3><p>Rote Pulse verorten gespeicherte Fehlercodes ungefähr in einem Systembereich. Ein Code benennt nicht automatisch das defekte Bauteil.</p><ul><li>Grauer Ring: möglicher Diagnosebereich, Status unbekannt.</li><li>Roter Kreis: gespeicherter OBD-II-Befund im letzten erfolgreichen Snapshot.</li><li>Unverortet: keine belastbare Zuordnung des Codes.</li></ul><p>Standard-OBD-II deckt nicht alle VW-Steuergeräte ab. Fehler aus ABS, Airbag oder Komfortelektronik sind damit nicht vollständig erfasst.</p><p>Es werden keine Fehler gelöscht und keine Stellglieder angesteuert. Bei Warnanzeigen die Fahrzeughinweise beachten und fachgerecht prüfen lassen.</p></aside></div>
+    </section>
 
-async function boot(){
-  let data;
-  try {
-    const r = await fetch('data/latest.json?_' + Date.now());
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    data = await r.json();
-  } catch (e) {
-    document.getElementById('last-update').textContent =
-      'Noch keine Daten. Wartet auf ersten Pi-Sync. (' + e.message + ')';
-    return;
-  }
-  const upd = new Date(data.generated_at);
-  document.getElementById('last-update').textContent =
-    'Letzter Sync: ' + upd.toLocaleString('de-DE');
+    <section id="view-telemetrie" class="view-panel" role="tabpanel" aria-labelledby="tab-telemetrie" hidden>
+      <article class="panel location-panel"><div class="panel-heading"><div><p class="eyebrow">03 / UNTERWEGS</p><h2>Letzte Position</h2></div><span class="chip">GPS</span></div><div id="map"><p class="empty-state">Position wird geladen …</p></div><p class="muted" id="last-pos-meta">Noch keine Position verfügbar.</p></article>
+    <section class="history" aria-labelledby="history-title"><div class="section-heading"><div><p class="eyebrow">04 / TELEMETRIE-VERLAUF</p><h2 id="history-title">Die letzten 24 Stunden.</h2></div><span class="muted" id="history-state">Warte auf Messwerte</span></div><div class="chart-grid">
+      <article class="panel chart-panel"><h3><span class="legend-dot green"></span>Drehzahl <span>U/min</span></h3><div class="chart-wrap"><canvas id="c-rpm" role="img" aria-label="Drehzahl der letzten 24 Stunden"></canvas><p class="chart-empty">Keine Messwerte verfügbar.</p></div></article>
+      <article class="panel chart-panel"><h3><span class="legend-dot green"></span>Geschwindigkeit <span>km/h</span></h3><div class="chart-wrap"><canvas id="c-speed" role="img" aria-label="Geschwindigkeit der letzten 24 Stunden"></canvas><p class="chart-empty">Keine Messwerte verfügbar.</p></div></article>
+      <article class="panel chart-panel"><h3><span class="legend-dot yellow"></span>Kühlmittel <span>°C</span></h3><div class="chart-wrap"><canvas id="c-cool" role="img" aria-label="Kühlmitteltemperatur der letzten 24 Stunden"></canvas><p class="chart-empty">Keine Messwerte verfügbar.</p></div></article>
+      <article class="panel chart-panel"><h3><span class="legend-dot green"></span>Bordspannung <span>V</span></h3><div class="chart-wrap"><canvas id="c-volt" role="img" aria-label="Bordspannung der letzten 24 Stunden"></canvas><p class="chart-empty">Keine Messwerte verfügbar.</p></div></article>
+    </div></section>
+    </section>
 
-  // Map
-  if (data.last_position) {
-    const lp = data.last_position;
-    const map = L.map('map').setView([lp.lat, lp.lon], 14);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                {attribution:'&copy; OpenStreetMap'}).addTo(map);
-    L.marker([lp.lat, lp.lon]).addTo(map);
-    if (data.gps_last_24h.length > 1) {
-      const track = data.gps_last_24h.filter(p => p.lat).map(p => [p.lat, p.lon]);
-      L.polyline(track, {color:'#b7472a', weight:3, opacity:.8}).addTo(map);
-    }
-    document.getElementById('last-pos-meta').textContent =
-      'Zuletzt aktiv: ' + fmt(lp.ts) + ' (' + lp.lat.toFixed(5) + ', ' + lp.lon.toFixed(5) + ')';
-  } else {
-    document.getElementById('map').innerHTML =
-      '<p style="padding:20px;color:#888">Keine GPS-Daten bisher.</p>';
-  }
+    <section id="view-system" class="view-panel" role="tabpanel" aria-labelledby="tab-system" hidden>
+      <div class="section-heading"><div><p class="eyebrow">04 / CONNECTED BY DESIGN</p><h2>Vom Messwert zum digitalen Zwilling.</h2></div><span class="chip">EDGE → HOME → WEB</span></div>
+      <div class="system-grid">
+        <article class="panel pipeline-panel"><div class="panel-heading"><h2>Die Datenreise.</h2></div><ol class="pipeline"><li><span class="pipeline-icon">01</span><div><h3>Erfassen</h3><p>OBD-II, gespeicherte DTCs &amp; GPS → Raspberry Pi</p></div><span class="pipeline-detail">EDGE</span></li><li><span class="pipeline-icon">02</span><div><h3>Puffern &amp; synchronisieren</h3><p>SQLite → Tailscale → Intel NUC / Proxmox</p></div><span class="pipeline-detail">SYNC</span></li><li><span class="pipeline-icon">03</span><div><h3>Zusammenführen &amp; speichern</h3><p>Telemetrie und Diagnose-Snapshots → Twin-Datenbank</p></div><span class="pipeline-detail">STORE</span></li><li><span class="pipeline-icon">04</span><div><h3>Sichtbar machen</h3><p>JSON-Export → GitHub Pages → Cockpit &amp; 3D</p></div><span class="pipeline-detail">TWIN</span></li></ol><p class="pipeline-footnote">OBD alle 5 s · Diagnose alle 60 s · Sync-Ziel alle 5 min</p></article>
+        <article class="panel hardware-panel"><div class="panel-heading"><h2>Die Hardware.</h2></div><div class="hardware-list"><div><span class="hardware-id">EDGE</span><h3>Raspberry Pi Zero 2 W</h3><p>microSD-Puffer · ELM327 Bluetooth · u-blox GPS HAT</p></div><div><span class="hardware-id">POWER</span><h3>Abgesichert im Bordnetz</h3><p>12 V → 5 V DC/DC · ADS1115 · Unterspannungsschutz · 5-A-Sicherung</p></div><div><span class="hardware-id">HOME</span><h3>Intel NUC / Proxmox LXC</h3><p>Twin-Server · SQLite · Ingest &amp; JSON-Export · Tailscale</p></div></div><div class="system-doc-links"><a href="https://github.com/go34iwb/vw-t6-twin/blob/main/docs/BOM.md" target="_blank" rel="noopener">Stückliste ↗</a><a href="https://github.com/go34iwb/vw-t6-twin/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">Architektur &amp; Diagnose-Schema ↗</a></div></article>
+      </div>
+      <article class="panel privacy-note"><span class="legend-dot yellow"></span><p>Der Server synchronisiert Messwerte und Diagnose-Snapshots. Dieses Dashboard ist ein statischer Datenstand, keine Fernsteuerung. Auf der öffentlichen GitHub Page sind exportierte GPS- und Diagnosedaten öffentlich einsehbar.</p></article>
+    </section>
 
-  // Latest stats
-  const obd = data.obd_last_24h || [];
-  if (obd.length) {
-    const last = obd[obd.length - 1];
-    const s = (id, v, u) => document.getElementById(id).textContent =
-      (v == null ? '—' : (typeof v === 'number' ? v.toFixed(v > 100 ? 0 : 1) : v) + ' ' + u);
-    s('s-rpm', last.rpm, 'U/min');
-    s('s-speed', last.speed_kmh, 'km/h');
-    s('s-cool', last.coolant_c, '°C');
-    s('s-volt', last.battery_v, 'V');
-    s('s-fuel', last.fuel_pct, '%');
-  }
-
-  // Charts
-  const labels = obd.map(r => fmtHM(r.ts));
-  const series = [
-    ['c-rpm',   obd.map(r => r.rpm),        'U/min', '#b7472a'],
-    ['c-speed', obd.map(r => r.speed_kmh),  'km/h',  '#3c7881'],
-    ['c-cool',  obd.map(r => r.coolant_c),  '°C',    '#d6a746'],
-    ['c-volt',  obd.map(r => r.battery_v),  'V',     '#5a696d']
-  ];
-  series.forEach(([id, vals, unit, color]) => {
-    new Chart(document.getElementById(id), {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [{data: vals, label: unit, borderColor: color,
-                    pointRadius: 0, borderWidth: 1.5, tension: .2}]
-      },
-      options: {animation: false,
-                scales: {x: {ticks: {maxTicksLimit: 8}}},
-                plugins: {legend: {display: false}}}
-    });
-  });
-}
-boot();
-</script>
+    <section id="view-garage" class="view-panel" role="tabpanel" aria-labelledby="tab-garage" hidden>
+      <div class="section-heading"><div><p class="eyebrow">05 / VIRTUAL GARAGE</p><h2>Caravelle. In einer neuen Dimension.</h2></div><span class="chip">8 SITZE · 2 + 3 + 3</span></div>
+      <article class="panel garage-panel">
+        <div class="garage-toolbar">
+          <div class="garage-views" aria-label="3D-Kameraposition">
+            <button type="button" data-camera="perspective" aria-pressed="true">Perspektive</button>
+            <button type="button" data-camera="top" aria-pressed="false">Draufsicht</button>
+            <button type="button" data-camera="side" aria-pressed="false">Seitenansicht</button>
+          </div>
+          <button id="xray-toggle" type="button" aria-pressed="false">Röntgenmodus</button>
+        </div>
+        <div id="garage-stage" role="group" aria-label="Interaktives schematisches 3D-Modell eines VW T6 Caravelle mit Diagnose-Hotspots">
+          <p id="garage-status" class="empty-state" role="status">3D-Ansicht wird beim Öffnen geladen …</p>
+        </div>
+        <div class="flow-controls">
+          <div class="legend-controls">
+            <button type="button" class="flow-toggle" data-layer="energy-flow" aria-pressed="true"><span class="legend-dot green"></span>Stoff &amp; Energie</button>
+            <button type="button" class="flow-toggle" data-layer="information-flow" aria-pressed="true"><span class="legend-dot yellow"></span>Information</button>
+          </div>
+          <button type="button" class="pause-button" data-pause-animation aria-pressed="false">Animation pausieren</button>
+        </div>
+        <div class="garage-footer"><span>Ziehen: drehen · Scrollen / Pinch: zoomen · Kameratasten als Alternative</span><span><i class="legend-dot green"></i> Energie <i class="legend-dot yellow"></i> Daten <i class="legend-dot red"></i> OBD-Befund</span></div>
+      </article>
+      <p class="diagram-note">Caravelle 2017 mit 8 Sitzen: zwei Einzelsitze vorn, danach zwei 3er-Reihen. Eigenständig modellierte, schematische Darstellung, kein maßgetreues VW-CAD-Modell. Frontantrieb als Referenz. Rote Systembereiche verwenden denselben Diagnose-Snapshot wie das Cockpit; unbekannte Codes werden nicht an einem erfundenen Bauteil verortet.</p>
+      <div class="garage-diagnostic-summary panel"><span class="micro">GEMEINSAMER DIAGNOSESTAND</span><p id="garage-diagnosis">Noch keine Diagnose verfügbar.</p><button type="button" class="diagnosis-link" data-open-diagnosis>Fehlercodes und Datenalter prüfen →</button></div>
+    </section>
+  </main>
+  <footer class="shell"><span><strong>T6</strong> DIGITAL TWIN <span class="footer-divider">/</span> ENGINEERED TO EXPLORE</span><span>2017 · Raspberry Pi + Tailscale + GitHub Pages <a href="technik.html">Bisherige Ansicht ↗</a></span></footer>
 </body>
 </html>
