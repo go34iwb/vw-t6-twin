@@ -1,4 +1,4 @@
-:root{color-scheme:dark;--bg:#050608;--panel:#0d1014;--line:#282d33;--ink:#f0f3f6;--muted:#99a3ad;--green:#42f5ac;--yellow:#f5d547;--red:#ff4b64;--mono:Consolas,"Courier New",monospace}
+:root{color-scheme:dark;--bg:#050608;--panel:#0d1014;--line:#282d33;--ink:#f0f3f6;--muted:#99a3ad;--green:#42f5ac;--yellow:#f5d547;--red:#ff4b64;--orange:#ff9f43;--mono:Consolas,"Courier New",monospace}
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(ellipse at 35% 15%,#23262b44,transparent 50%),var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif}
 [hidden]{display:none!important}
@@ -49,6 +49,7 @@ h3{margin:0;font-size:13px;font-weight:500}
 .green-text{color:var(--green)}
 .red-text{color:var(--red)}
 .yellow-text{color:var(--yellow)}
+.orange-text{color:var(--orange)}
 .technical-note{font:10px/1.9 var(--mono);color:#91a6bb;border:1px solid var(--line);border-radius:8px;padding:15px}
 .crosshair{float:right;color:var(--green);font-size:20px}
 .vehicle-stage{position:relative;isolation:isolate;min-width:0;border-inline:1px solid var(--line);background:radial-gradient(ellipse at 50% 40%,#333b4244,transparent 65%),#07090c}
@@ -59,6 +60,10 @@ h3{margin:0;font-size:13px;font-weight:500}
 .svg-micro{font:9px var(--mono);fill:#8daabd;letter-spacing:1px}
 .component-text{font:10px var(--mono);fill:#c3d8e5;letter-spacing:.5px}
 .headlights{filter:drop-shadow(0 0 7px #b6eaff88)}
+.flow-layer{fill:none;stroke-linecap:round}
+.flow-fuel{stroke:var(--orange)}
+.flow-power{stroke:var(--green)}
+.flow-info{stroke:var(--yellow)}
 .flow-track{opacity:.35}
 .flow-glow{opacity:.6}
 .flow-particles{stroke-dasharray:4 23;stroke-linecap:round;animation:flow 1.25s linear infinite}
@@ -88,6 +93,7 @@ h3{margin:0;font-size:13px;font-weight:500}
 .legend-dot.green{background:var(--green);box-shadow:0 0 10px #42f5ac55}
 .legend-dot.red{background:var(--red);box-shadow:0 0 10px #ff617b55}
 .legend-dot.yellow{background:var(--yellow);box-shadow:0 0 10px #f5d54755}
+.legend-dot.orange{background:var(--orange);box-shadow:0 0 10px #ff9f4355}
 .diagram-note{margin:0;padding:6px 28px 20px;font-size:10px;line-height:1.8;color:var(--muted)}
 body.animation-paused .flow-particles,body.animation-paused .pulse-node,body.animation-paused .signal-bars i,body.animation-paused .hotspot-halo{animation-play-state:paused}
 body.information-hidden .signal-bars{visibility:hidden}
