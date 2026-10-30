@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#050608">
-  <meta name="description" content="VW T6 Digital Twin: Antriebsstrang, animierte Kraftstoff-, Strom- und Informationsflüsse, Telemetrie und Position.">
+  <meta name="description" content="VW T6 Digital Twin: Antriebsstrang, animierte Stoff- und Informationsflüsse, Telemetrie und Position.">
   <title>VW T6 · Digital Twin</title>
   <link rel="stylesheet" href="dashboard.css">
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -46,10 +46,9 @@
       <div class="panel-heading"><div><p class="eyebrow">01 / FAHRZEUG-EXPLORER</p><h2 id="twin-title">Technik, die verbindet.</h2></div><span class="chip">DRAUFSICHT · SCHEMATISCH</span></div>
       <div class="twin-layout">
         <aside class="system-list">
-          <p class="micro">DREI FLUSSEBENEN</p>
-          <div class="system-card"><span class="system-number orange-text">01</span><div><h3>Kraftstoff</h3><p>Vom Tank durch die Vorlaufleitung zum Motor.</p><span class="system-tag orange-text">TANK → MOTOR</span></div></div>
-          <div class="system-card"><span class="system-number green-text">02</span><div><h3>Stromfluss</h3><p>12-V-Leitungen von der Batterie zur ECU und zum OBD-II-Anschluss.</p><span class="system-tag green-text">BATTERIE → ECU / OBD</span></div></div>
-          <div class="system-card"><span class="system-number yellow-text">03</span><div><h3>Informationsfluss</h3><p>Motorsensoren und Getriebedaten über die ECU zum OBD-II-Anschluss.</p><span class="system-tag yellow-text">SENSOREN → ECU → OBD</span></div></div>
+          <p class="micro">STOFF &amp; ENERGIE</p>
+          <div class="system-card"><span class="system-number green-text">01</span><div><h3>Kraftstoffversorgung</h3><p>Vom Tank durch die Vorlaufleitung zum Motor.</p><span class="system-tag green-text">TANK → MOTOR</span></div></div>
+          <div class="system-card"><span class="system-number green-text">02</span><div><h3>Antriebsstrang</h3><p>Motor, Getriebe und Differential übertragen die Kraft auf die Vorderräder.</p><span class="system-tag green-text">DREHMOMENT → BEWEGUNG</span></div></div>
           <div class="technical-note"><span class="crosshair">+</span> Röntgenansicht<br>Karosserie transparent. Technik sichtbar.</div>
         </aside>
 
@@ -57,7 +56,7 @@
           <div class="stage-coordinate top">FRONT / FAHRTRICHTUNG ↑</div>
           <svg class="vehicle" viewBox="0 0 640 880" role="img" aria-labelledby="vehicle-title vehicle-desc">
             <title id="vehicle-title">VW T6 in Draufsicht mit transparentem Aufbau</title>
-            <desc id="vehicle-desc">Schematischer T6 Caravelle mit Frontmotor und Frontantrieb. Orange: Kraftstoff vom Tank zum Motor. Grün: Stromversorgung von der Batterie zur ECU und zum OBD-II-Anschluss. Gelb: Sensordaten vom Motor und Getriebe über die ECU zum OBD-II-Anschluss. Graue Ringe sind mögliche Diagnosebereiche. Nur gespeicherte OBD-II-Fehlercodes aktivieren rote, transparente Diagnose-Hotspots; ihre Position ist eine ungefähre Systemzuordnung. Keine Live-Durchflussmessung.</desc>
+            <desc id="vehicle-desc">Schematischer T6 Caravelle mit Frontmotor und Frontantrieb. Grüne Pfeile zeigen Kraftstoff und Kraftübertragung, gelbe Pfeile die Informationswege. Graue Ringe sind mögliche Diagnosebereiche. Nur gespeicherte OBD-II-Fehlercodes aktivieren rote, transparente Diagnose-Hotspots; ihre Position ist eine ungefähre Systemzuordnung. Keine Live-Durchflussmessung.</desc>
             <defs>
               <linearGradient id="body-paint" x1="0" x2="1"><stop stop-color="#345166" stop-opacity=".6"/><stop offset=".3" stop-color="#9bb9c9" stop-opacity=".12"/><stop offset=".7" stop-color="#41657c" stop-opacity=".2"/><stop offset="1" stop-color="#7294a7" stop-opacity=".55"/></linearGradient>
               <linearGradient id="glass" x1="0" y1="0" x2=".7" y2="1"><stop stop-color="#75bad5" stop-opacity=".4"/><stop offset="1" stop-color="#162b40" stop-opacity=".3"/></linearGradient>
@@ -65,16 +64,17 @@
               <pattern id="stage-grid" width="32" height="32" patternUnits="userSpaceOnUse"><path d="M32 0H0V32" fill="none" stroke="#67859c" stroke-opacity=".09"/></pattern>
               <filter id="green-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter>
               <filter id="yellow-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter>
-              <filter id="orange-glow" x="-100%" y="-100%" width="300%" height="300%"><feGaussianBlur stdDeviation="4"/></filter>
               <marker id="arrow-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="m0 0 10 5-10 5z" fill="#42f5ac"/></marker>
               <marker id="arrow-yellow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="m0 0 10 5-10 5z" fill="#f5d547"/></marker>
-              <marker id="arrow-orange" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="m0 0 10 5-10 5z" fill="#ff9f43"/></marker>
               <path id="fuel-route" d="M284 581H251V240H292V205"/>
-              <path id="power-ecu-route" d="M226 221V347H352"/>
-              <path id="power-obd-route" d="M226 221V410H299"/>
+              <path id="torque-route" d="M320 206H379V261H320"/>
+              <path id="left-axle" d="M320 261H188"/>
+              <path id="right-axle" d="M379 261H452"/>
               <path id="sensor-route" d="M333 176H402V338H380"/>
-              <path id="trans-route" d="M382 255V327"/>
               <path id="obd-route" d="M380 358V399H340"/>
+              <path id="pi-route" d="M340 418V470H390V510"/>
+              <path id="gps-route" d="M397 638H422V548H408"/>
+              <path id="export-route" d="M408 529H492V707H535"/>
             </defs>
             <rect width="640" height="880" fill="url(#stage-grid)"/>
             <g class="dimension" fill="none" stroke="#436077" stroke-width="1"><path d="M132 101H105V793H132M99 101H111M99 793H111M183 827V846H455V827"/><path d="M320 66V809" stroke-dasharray="4 10"/></g>
@@ -124,36 +124,29 @@
               <text x="309" y="601" class="component-text" text-anchor="middle">TANK</text><text x="309" y="620" class="svg-micro" text-anchor="middle">DIESEL</text>
               <rect x="352" y="327" width="55" height="41" rx="6" fill="#36301b" stroke="#f5d547"/><text x="379" y="352" text-anchor="middle" class="component-text">ECU</text>
               <rect x="299" y="396" width="44" height="29" rx="5" fill="#36301b" stroke="#f5d547"/><text x="321" y="415" text-anchor="middle" class="component-text">OBD</text>
+              <rect x="365" y="509" width="47" height="41" rx="5" fill="#36301b" stroke="#f5d547"/><rect x="377" y="519" width="19" height="18" rx="2" fill="none" stroke="#f5d547"/>
+              <rect x="375" y="622" width="35" height="31" rx="7" fill="#36301b" stroke="#f5d547"/><path d="M384 640q9-15 18 0m-14-5q5-7 10 0" fill="none" stroke="#f5d547"/>
             </g>
-            <g class="flow-layer fuel-flow" fill="none" stroke="#ff9f43" aria-label="Kraftstofffluss">
-              <title>Kraftstoff: Tank → Motor</title>
-              <g class="flow-glow" stroke-width="9" filter="url(#orange-glow)"><use href="#fuel-route"/></g>
-              <g class="flow-track" stroke-width="2"><use href="#fuel-route"/></g>
-              <g class="flow-particles" stroke-width="4"><use href="#fuel-route"/></g>
-              <path d="M292 222V205" stroke-width="2" marker-end="url(#arrow-orange)"/>
-              <circle class="pulse-node" cx="280" cy="380" r="9"/>
+            <g class="flow-layer energy-flow" fill="none" stroke="#42f5ac">
+              <g class="flow-glow" stroke-width="9" filter="url(#green-glow)"><use href="#fuel-route"/><use href="#torque-route"/><use href="#left-axle"/><use href="#right-axle"/></g>
+              <g class="flow-track" stroke-width="2"><use href="#fuel-route"/><use href="#torque-route"/><use href="#left-axle"/><use href="#right-axle"/></g>
+              <g class="flow-particles" stroke-width="4"><use href="#fuel-route"/><use href="#torque-route"/><use href="#left-axle"/><use href="#right-axle"/></g>
+              <path d="M251 455V421M251 310V276M320 261H225M395 261H433" stroke-width="2" marker-end="url(#arrow-green)"/>
+              <circle class="pulse-node" cx="292" cy="205" r="8"/><circle class="pulse-node delay" cx="369" cy="261" r="23"/>
             </g>
-            <g class="flow-layer power-flow" fill="none" stroke="#42f5ac" aria-label="Stromfluss">
-              <title>Stromversorgung: Batterie → ECU, Batterie → OBD-II</title>
-              <g class="flow-glow" stroke-width="9" filter="url(#green-glow)"><use href="#power-ecu-route"/><use href="#power-obd-route"/></g>
-              <g class="flow-track" stroke-width="2"><use href="#power-ecu-route"/><use href="#power-obd-route"/></g>
-              <g class="flow-particles" stroke-width="4"><use href="#power-ecu-route"/><use href="#power-obd-route"/></g>
-              <path d="M335 347H352M282 410H299" stroke-width="2" marker-end="url(#arrow-green)"/>
-              <circle class="pulse-node" cx="226" cy="221" r="9"/><circle class="pulse-node delay" cx="380" cy="358" r="12"/><circle class="pulse-node" cx="321" cy="410" r="8"/>
-            </g>
-            <g class="flow-layer information-flow" fill="none" stroke="#f5d547" aria-label="Informationsfluss">
-              <title>Sensordaten: Motor und Getriebe → ECU → OBD-II</title>
-              <g class="flow-glow" stroke-width="8" filter="url(#yellow-glow)"><use href="#sensor-route"/><use href="#trans-route"/><use href="#obd-route"/></g>
-              <g class="flow-track" stroke-width="1.5"><use href="#sensor-route"/><use href="#trans-route"/><use href="#obd-route"/></g>
-              <g class="flow-particles data-particles" stroke-width="3"><use href="#sensor-route"/><use href="#trans-route"/><use href="#obd-route"/></g>
-              <path d="M402 338H380M382 312V327M355 399H340" stroke-width="2" marker-end="url(#arrow-yellow)"/>
-              <circle class="pulse-node" cx="333" cy="176" r="9"/><circle class="pulse-node delay" cx="382" cy="255" r="8"/><circle class="pulse-node" cx="321" cy="410" r="7"/>
+            <g class="flow-layer information-flow" fill="none" stroke="#f5d547">
+              <g class="flow-glow" stroke-width="8" filter="url(#yellow-glow)"><use href="#sensor-route"/><use href="#obd-route"/><use href="#pi-route"/><use href="#gps-route"/><use href="#export-route"/></g>
+              <g class="flow-track" stroke-width="1.5"><use href="#sensor-route"/><use href="#obd-route"/><use href="#pi-route"/><use href="#gps-route"/><use href="#export-route"/></g>
+              <g class="flow-particles data-particles" stroke-width="3"><use href="#sensor-route"/><use href="#obd-route"/><use href="#pi-route"/><use href="#gps-route"/><use href="#export-route"/></g>
+              <path d="M402 270V307M340 443V464M492 625V655" stroke-width="2" marker-end="url(#arrow-yellow)"/>
+              <circle class="pulse-node" cx="388" cy="529" r="30"/>
             </g>
             <g class="svg-labels" fill="none" stroke="#647e94" stroke-width="1">
               <path d="M278 183H123V166H56"/><path d="M389 222H510V206H574"/><path d="M271 603H136V591H56"/>
-              <path d="M407 346H493V330H574"/><path d="M336 410H493V436H574"/>
+              <path d="M407 346H493V330H574"/><path d="M411 530H507V492H574"/><path d="M409 638H516V616H574"/>
             </g>
-            <g class="component-text"><text x="56" y="155">TDI / MOTOR</text><text x="574" y="195" text-anchor="end">GETRIEBE</text><text x="56" y="580">KRAFTSTOFF</text><text x="574" y="319" text-anchor="end">STEUERGERÄT</text><text x="574" y="425" text-anchor="end">OBD-II</text></g>
+            <g class="component-text"><text x="56" y="155">TDI / MOTOR</text><text x="574" y="195" text-anchor="end">GETRIEBE</text><text x="56" y="580">KRAFTSTOFF</text><text x="574" y="319" text-anchor="end">STEUERGERÄT</text><text x="574" y="481" text-anchor="end">RASPBERRY Pi</text><text x="574" y="605" text-anchor="end">GPS</text></g>
+            <g transform="translate(514 691)"><rect width="75" height="42" rx="8" fill="#282516" stroke="#f5d547" stroke-opacity=".6"/><text x="37" y="709" text-anchor="middle" class="component-text">SYNC</text><text x="37" y="723" text-anchor="middle" class="svg-micro">→ NUC</text></g>
             <g class="diagnostic-hotspots">
               <g class="sensor-hotspot" data-component="engine" transform="translate(308 195)"><title>Motor: möglicher Diagnosebereich, kein Fehlernachweis</title><circle class="hotspot-halo" r="42"/><circle class="hotspot-ring" r="18"/><circle class="hotspot-pin" r="4"/></g>
               <g class="sensor-hotspot" data-component="transmission" transform="translate(374 238)"><title>Getriebe: möglicher Diagnosebereich, kein Fehlernachweis</title><circle class="hotspot-halo" r="37"/><circle class="hotspot-ring" r="15"/><circle class="hotspot-pin" r="4"/></g>
@@ -170,16 +163,16 @@
 
         <aside class="system-list information-list">
           <p class="micro">INFORMATION &amp; VERNETZUNG</p>
-          <div class="system-card"><span class="system-number yellow-text">01</span><div><h3>Sensordaten</h3><p>Motorsensoren und Getriebedaten fließen über den CAN-Bus zur ECU.</p><span class="system-tag yellow-text">SENSOREN → ECU</span></div></div>
-          <div class="system-card"><span class="system-number yellow-text">02</span><div><h3>OBD-II-Anschluss</h3><p>Die ECU stellt Messwerte und gespeicherte Fehlercodes am OBD-II-Stecker bereit.</p><span class="system-tag yellow-text">ECU → OBD-II</span></div></div>
+          <div class="system-card"><span class="system-number yellow-text">03</span><div><h3>Fahrzeugdaten</h3><p>Motorsignale und gespeicherte Fehlercodes über OBD-II zum Raspberry Pi.</p><span class="system-tag yellow-text">SENSOREN → EDGE</span></div></div>
+          <div class="system-card"><span class="system-number yellow-text">04</span><div><h3>Digitaler Zwilling</h3><p>GPS, Telemetrie und Diagnose-Snapshots per Tailscale zum NUC und ins Dashboard.</p><span class="system-tag yellow-text">BUS → NUC → DASHBOARD</span></div></div>
           <div class="signal-box"><span class="micro">DATENPFAD</span><div class="signal-bars" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><span class="muted">Schematische Signalvisualisierung</span></div>
         </aside>
       </div>
       <div class="flow-controls" aria-label="Visualisierung steuern">
-        <div class="legend-controls"><button type="button" class="flow-toggle" data-layer="fuel-flow" aria-pressed="true"><span class="legend-dot orange"></span>Kraftstoff</button><button type="button" class="flow-toggle" data-layer="power-flow" aria-pressed="true"><span class="legend-dot green"></span>Strom</button><button type="button" class="flow-toggle" data-layer="information-flow" aria-pressed="true"><span class="legend-dot yellow"></span>Information</button><button type="button" class="diagnosis-link" data-open-diagnosis><span class="legend-dot red"></span><span id="hotspot-summary">Diagnose unbekannt</span> →</button></div>
+        <div class="legend-controls"><button type="button" class="flow-toggle" data-layer="energy-flow" aria-pressed="true"><span class="legend-dot green"></span>Stoff &amp; Energie</button><button type="button" class="flow-toggle" data-layer="information-flow" aria-pressed="true"><span class="legend-dot yellow"></span>Information</button><button type="button" class="diagnosis-link" data-open-diagnosis><span class="legend-dot red"></span><span id="hotspot-summary">Diagnose unbekannt</span> →</button></div>
         <button type="button" class="pause-button" id="pause-animation" data-pause-animation aria-pressed="false">Animation pausieren</button>
       </div>
-      <p class="diagram-note">* Vereinfachte Frontantriebsdarstellung. Orange: Kraftstoff, grün: Stromversorgung, gelb: Informationsfluss — alle Ströme illustrativ, keine Live-Messung. Graue Ringe: mögliche Diagnosebereiche. Rot: gespeicherte OBD-II-Befunde, nur ungefähr einem System zugeordnet — kein Nachweis eines defekten Bauteils. Details und Datenalter unter Diagnose.</p>
+      <p class="diagram-note">* Vereinfachte Frontantriebsdarstellung. Grüne und gelbe Ströme sind illustrativ, keine Live-Messung. Graue Ringe: mögliche Diagnosebereiche. Rot: gespeicherte OBD-II-Befunde, nur ungefähr einem System zugeordnet — kein Nachweis eines defekten Bauteils. Details und Datenalter unter Diagnose.</p>
     </section>
     </section>
 
@@ -224,13 +217,12 @@
         </div>
         <div class="flow-controls">
           <div class="legend-controls">
-            <button type="button" class="flow-toggle" data-layer="fuel-flow" aria-pressed="true"><span class="legend-dot orange"></span>Kraftstoff</button>
-            <button type="button" class="flow-toggle" data-layer="power-flow" aria-pressed="true"><span class="legend-dot green"></span>Strom</button>
+            <button type="button" class="flow-toggle" data-layer="energy-flow" aria-pressed="true"><span class="legend-dot green"></span>Stoff &amp; Energie</button>
             <button type="button" class="flow-toggle" data-layer="information-flow" aria-pressed="true"><span class="legend-dot yellow"></span>Information</button>
           </div>
           <button type="button" class="pause-button" data-pause-animation aria-pressed="false">Animation pausieren</button>
         </div>
-        <div class="garage-footer"><span>Ziehen: drehen · Scrollen / Pinch: zoomen · Kameratasten als Alternative</span><span><i class="legend-dot orange"></i> Kraftstoff <i class="legend-dot green"></i> Strom <i class="legend-dot yellow"></i> Daten <i class="legend-dot red"></i> OBD-Befund</span></div>
+        <div class="garage-footer"><span>Ziehen: drehen · Scrollen / Pinch: zoomen · Kameratasten als Alternative</span><span><i class="legend-dot green"></i> Energie <i class="legend-dot yellow"></i> Daten <i class="legend-dot red"></i> OBD-Befund</span></div>
       </article>
       <p class="diagram-note">Caravelle 2017 mit 8 Sitzen: zwei Einzelsitze vorn, danach zwei 3er-Reihen. Eigenständig modellierte, schematische Darstellung, kein maßgetreues VW-CAD-Modell. Frontantrieb als Referenz. Rote Systembereiche verwenden denselben Diagnose-Snapshot wie das Cockpit; unbekannte Codes werden nicht an einem erfundenen Bauteil verortet.</p>
       <div class="garage-diagnostic-summary panel"><span class="micro">GEMEINSAMER DIAGNOSESTAND</span><p id="garage-diagnosis">Noch keine Diagnose verfügbar.</p><button type="button" class="diagnosis-link" data-open-diagnosis>Fehlercodes und Datenalter prüfen →</button></div>

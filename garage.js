@@ -7,8 +7,8 @@
   let phase = 0;
   let previousTime = 0;
   let renderer, scene, camera, controls;
-  let fuelGroup, powerGroup, informationGroup;
-  const flowVisibility = {'fuel-flow': true, 'power-flow': true, 'information-flow': true};
+  let energyGroup, informationGroup;
+  const flowVisibility = {'energy-flow': true, 'information-flow': true};
   let diagnosticComponents = new Set();
   const bodyMaterials = [];
   const glassMaterials = [];
@@ -242,11 +242,9 @@
     box(.31, .22, .3, -.69, .99, -1.88, metal);
     box(.3, .08, .23, .54, .83, -.41, yellow);
     box(.25, .08, .22, .55, .84, .65, yellow);
-    fuelGroup = new THREE.Group();
-    powerGroup = new THREE.Group();
+    energyGroup = new THREE.Group();
     informationGroup = new THREE.Group();
-    scene.add(fuelGroup, powerGroup, informationGroup);
-    const flowGroups = {'fuel-flow': fuelGroup, 'power-flow': powerGroup, 'information-flow': informationGroup};
+    scene.add(energyGroup, informationGroup);
     function route(points, color, group) {
       const curve = new THREE.CatmullRomCurve3(points.map(point => new THREE.Vector3(...point)), false, 'centripetal');
       const tube = new THREE.Mesh(new THREE.TubeGeometry(curve, 64, .018, 6, false),
@@ -259,15 +257,10 @@
         particles.push({mesh: particle, curve, offset: i / 7});
       }
     }
-    // Kraftstoff: Tank → Motor
-    route([[-.3,.58,.5],[-.4,.64,-.5],[-.28,.75,-1.2],[-.12,.95,-1.9]],0xff9f43,fuelGroup);
-    // Stromversorgung: Batterie → ECU, Batterie → OBD-II
-    route([[-.69,.99,-1.85],[-.75,.72,-1.2],[-.5,.6,-.85],[.3,.6,-.52],[.54,.78,-.41]],0x42f5ac,powerGroup);
-    route([[-.69,.99,-1.85],[-.82,.82,-1.0],[-.78,.82,0],[-.5,.92,.6]],0x42f5ac,powerGroup);
-    // Sensordaten: Motor → ECU, Getriebe → ECU, ECU → OBD-II (CAN-Bus)
-    route([[-.12,1.14,-1.9],[.25,1.28,-1.55],[.48,1.02,-1.05],[.54,.88,-.41]],0xf5d547,informationGroup);
-    route([[.49,.92,-1.72],[.52,.86,-1.2],[.54,.85,-.55]],0xf5d547,informationGroup);
-    route([[.5,.8,-.45],[.05,1.05,-.1],[-.3,.95,.3],[-.5,.9,.62]],0xf5d547,informationGroup);
+    route([[-.3,.58,.9],[-.69,.64,.3],[-.69,.68,-1.3],[-.12,1.2,-1.98]],0x42f5ac,energyGroup);
+    route([[0,1.2,-1.98],[.48,.91,-1.8],[.6,.64,-1.57],[1.02,.52,-1.57]],0x42f5ac,energyGroup);
+    route([[.48,.91,-1.8],[0,.64,-1.57],[-1.02,.52,-1.57]],0x42f5ac,energyGroup);
+    route([[.1,1.24,-1.98],[.69,1.4,-1.6],[.69,1.32,-.43],[.54,1.1,.65],[1.27,1.1,1.4]],0xf5d547,informationGroup);
     const locations = {
       engine: [-.12,1.17,-1.98], transmission: [.5,.98,-1.8], cooling: [0,1.05,-2.27],
       electrical: [-.69,1.1,-1.88], fuel: [-.3,.64,.56], exhaust: [.5,.58,1.94]
@@ -285,8 +278,7 @@
       halo.add(marker);
     });
     initialized = true;
-    fuelGroup.visible = flowVisibility['fuel-flow'];
-    powerGroup.visible = flowVisibility['power-flow'];
+    energyGroup.visible = flowVisibility['energy-flow'];
     informationGroup.visible = flowVisibility['information-flow'];
     status.hidden = true;
     const observer = new ResizeObserver(() => {
@@ -347,8 +339,7 @@
     setFlow(layer, visible) {
       flowVisibility[layer] = visible;
       if (initialized) {
-        const group = flowGroups[layer];
-        if (group) group.visible = visible;
+        (layer === 'energy-flow' ? energyGroup : informationGroup).visible = visible;
         render();
       }
     },
