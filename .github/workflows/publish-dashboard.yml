@@ -1,0 +1,47 @@
+name: Publish dashboard
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - dashboard/**
+      - .github/workflows/publish-dashboard.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out dashboard source
+        uses: actions/checkout@v4
+        with:
+          path: source
+
+      - name: Check out Pages branch
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: pages
+
+      - name: Publish dashboard files
+        run: |
+          cp source/dashboard/index.html pages/index.html
+          cp source/dashboard/dashboard.css pages/dashboard.css
+          cp source/dashboard/dashboard.js pages/dashboard.js
+          cp source/dashboard/garage.js pages/garage.js
+          rm -rf pages/dashboard
+
+      - name: Commit and push Pages update
+        working-directory: pages
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git diff --cached --quiet && exit 0
+          git commit -m "Publish dashboard from main"
+          git pull --rebase origin gh-pages
+          git push origin HEAD:gh-pages
