@@ -13,6 +13,7 @@
   <script defer src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
   <script defer src="garage.js"></script>
+  <script defer src="system.js"></script>
   <script defer src="dashboard.js"></script>
 </head>
 <body>
@@ -200,12 +201,8 @@
     </section>
 
     <section id="view-system" class="view-panel" role="tabpanel" aria-labelledby="tab-system" hidden>
-      <div class="section-heading"><div><p class="eyebrow">04 / CONNECTED BY DESIGN</p><h2>Vom Messwert zum digitalen Zwilling.</h2></div><span class="chip">EDGE → HOME → WEB</span></div>
-      <div class="system-grid">
-        <article class="panel pipeline-panel"><div class="panel-heading"><h2>Die Datenreise.</h2></div><ol class="pipeline"><li><span class="pipeline-icon">01</span><div><h3>Erfassen</h3><p>OBD-II, gespeicherte DTCs &amp; GPS → Raspberry Pi</p></div><span class="pipeline-detail">EDGE</span></li><li><span class="pipeline-icon">02</span><div><h3>Puffern &amp; synchronisieren</h3><p>SQLite → Tailscale → Intel NUC / Proxmox</p></div><span class="pipeline-detail">SYNC</span></li><li><span class="pipeline-icon">03</span><div><h3>Zusammenführen &amp; speichern</h3><p>Telemetrie und Diagnose-Snapshots → Twin-Datenbank</p></div><span class="pipeline-detail">STORE</span></li><li><span class="pipeline-icon">04</span><div><h3>Sichtbar machen</h3><p>JSON-Export → GitHub Pages → Cockpit &amp; 3D</p></div><span class="pipeline-detail">TWIN</span></li></ol><p class="pipeline-footnote">OBD alle 5 s · Diagnose alle 60 s · Sync-Ziel alle 5 min</p></article>
-        <article class="panel hardware-panel"><div class="panel-heading"><h2>Die Hardware.</h2></div><div class="hardware-list"><div><span class="hardware-id">EDGE</span><h3>Raspberry Pi Zero 2 W</h3><p>microSD-Puffer · ELM327 Bluetooth · u-blox GPS HAT</p></div><div><span class="hardware-id">POWER</span><h3>Abgesichert im Bordnetz</h3><p>12 V → 5 V DC/DC · ADS1115 · Unterspannungsschutz · 5-A-Sicherung</p></div><div><span class="hardware-id">HOME</span><h3>Intel NUC / Proxmox LXC</h3><p>Twin-Server · SQLite · Ingest &amp; JSON-Export · Tailscale</p></div></div><div class="system-doc-links"><a href="https://github.com/go34iwb/vw-t6-twin/blob/main/docs/BOM.md" target="_blank" rel="noopener">Stückliste ↗</a><a href="https://github.com/go34iwb/vw-t6-twin/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener">Architektur &amp; Diagnose-Schema ↗</a></div></article>
-      </div>
-      <article class="panel privacy-note"><span class="legend-dot yellow"></span><p>Der Server synchronisiert Messwerte und Diagnose-Snapshots. Dieses Dashboard ist ein statischer Datenstand, keine Fernsteuerung. Auf der öffentlichen GitHub Page sind exportierte GPS- und Diagnosedaten öffentlich einsehbar.</p></article>
+      <div class="system-embed" id="system-root"></div>
+      <noscript><p class="empty-state" role="alert">Die Systemansicht benötigt JavaScript.</p></noscript>
     </section>
 
     <section id="view-garage" class="view-panel" role="tabpanel" aria-labelledby="tab-garage" hidden>

@@ -254,6 +254,7 @@ async function boot() {
     document.getElementById('map').innerHTML = '<p class="empty-state">Keine Positionsdaten verfügbar. Wartet auf den ersten Datenexport.</p>';
     document.getElementById('history-state').textContent = 'Kein Datenexport verfügbar';
     showDiagnostics(null);
+    window.TwinSystem?.update(null, null);
     return;
   }
   const generated = new Date(data.generated_at);
@@ -272,6 +273,7 @@ async function boot() {
   }
   telemetryData = {...data, obd_last_24h: obd};
   showDiagnostics(data.diagnostics);
+  window.TwinSystem?.update(telemetryData, data.diagnostics);
   if (!document.getElementById('view-telemetrie').hidden) renderTelemetry();
 }
 openView(location.hash.slice(1));

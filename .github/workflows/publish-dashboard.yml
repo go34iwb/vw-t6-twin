@@ -33,6 +33,7 @@ jobs:
           cp source/dashboard/dashboard.css pages/dashboard.css
           cp source/dashboard/dashboard.js pages/dashboard.js
           cp source/dashboard/garage.js pages/garage.js
+          cp source/dashboard/system.js pages/system.js
           rm -rf pages/dashboard
 
       - name: Commit and push Pages update
