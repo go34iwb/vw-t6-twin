@@ -1,5 +1,6 @@
 #!/bin/bash
-# VW T6 Digital Twin — Pi Zero 2 W bootstrap (Raspberry Pi OS Lite 64-bit)
+# VW T6 Digital Twin — Pi 3B+ bootstrap (Raspberry Pi OS Lite 64-bit)
+# Alternative: Zero 2 W/WH — gleicher 40-Pin-HAT-Standard, Script läuft unverändert.
 set -euo pipefail
 
 echo "[1/6] Packages"

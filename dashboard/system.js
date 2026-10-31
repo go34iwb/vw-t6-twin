@@ -67,11 +67,11 @@
       outputs: 'JSON-Zeilen (OBD-Antworten) an den Raspberry Pi'
     },
     pi: {
-      name: 'Raspberry Pi Zero 2 W (512 MB)', type: 'Onboard-Rechner',
+      name: 'Raspberry Pi 3B+ (Alt: Zero 2 W/WH)', type: 'Onboard-Rechner',
       status: 'planned', source: 'bom',
-      description: 'Hauptrechner der Fahrzeugseite (BOM #1, ca. 5 V/0,5 A). Läuft hier: collector.py (Erfassung), sync.py (Übertragung), power_watch.py (Versorgungswächter). Gerät ist noch nicht eingebaut.',
-      interfaces: ['USB (OBD-Adapter)', 'UART (GPS HAT)', 'I2C (ADS1115)', 'WiFi (sync)'],
-      protocols: ['UART', 'I2C', 'SSH/rsync über Tailscale', 'WiFi'],
+      description: 'Hauptrechner der Fahrzeugseite (BOM #1, Spec 5 V/2,5 A, ~1,3 W idle). Läuft hier: collector.py (Erfassung), sync.py (Übertragung), power_watch.py (Versorgungswächter). 3B+ gewählt wegen Verfügbarkeit; Zero 2 W/WH wäre softwareseitig identisch (gleiche 40-Pin-HAT-Pins). Gerät ist noch nicht eingebaut.',
+      interfaces: ['USB (OBD-Adapter, Upgrade-Pfad)', 'UART (GPS HAT)', 'I2C (ADS1115)', 'WiFi 2,4/5 GHz (sync)'],
+      protocols: ['UART', 'I2C', 'SSH/rsync über Tailscale', 'WiFi', 'Bluetooth (SPP)'],
       inputs: 'OBD-Zeilen (BT), GPS-NMEA (UART), Batteriespannung (I2C/ADC)',
       outputs: 'SQLite-DB (samples) → rsync an twin-server'
     },
@@ -213,7 +213,7 @@
     { id: 'powerRail',    x: 330, y: 156, w: 200, h: 64,  zone: 'vehicle',  title: 'Bordversorgung' },
     { id: 'gpsHat',       x: 610, y: 46,  w: 180, h: 54,  zone: 'vehicle',  title: 'GPS HAT' },
     { id: 'ads1115',      x: 610, y: 120, w: 180, h: 54,  zone: 'vehicle',  title: 'ADS1115 + Teiler' },
-    { id: 'pi',           x: 610, y: 196, w: 340, h: 76,  zone: 'vehicle',  title: 'Raspberry Pi Zero 2 W' },
+    { id: 'pi',           x: 610, y: 196, w: 340, h: 76,  zone: 'vehicle',  title: 'Raspberry Pi 3B+' },
     // Twin-Server
     { id: 'twinServer',   x: 40,  y: 330, w: 170, h: 96,  zone: 'server',   title: 'twin-server (LXC)' },
     { id: 'ingest',       x: 270, y: 336, w: 190, h: 60,  zone: 'server',   title: 'twin-ingest' },
@@ -595,7 +595,7 @@
             step('Zweitbatterie (12 V)', 'Getrennt von der Starterbatterie — Vermeidung einer Entladung', 'planned'),
             step('Flachsicherung 5 A', '1,5 mm² KFZ-Kabel, ~3 m · Schutz der Leitung', 'planned'),
             step('DC/DC-Wandler 12 V → 5 V', '≥ 3 A, mit Enable-Pin (LM2596-Modul o. ä.) — kontrolliertes Ein/Aus', 'planned'),
-            step('Raspberry Pi Zero 2 W + GPS HAT', 'Verbraucher (ca. 5 V / 0,5 A)', 'planned')),
+            step('Raspberry Pi 3B+ + GPS HAT', 'Verbraucher (Spec 5 V / 2,5 A, typ. ~0,3 A)', 'planned')),
           html('h3', { class: 'sys-h3', text: 'Monitoringschleife (Konzept)' }),
           html('div', { class: 'sys-powerchain' },
             step('Spannungsteiler 100k/22k → ADS1115', 'I2C, 16-bit · Faktor 5,545 · alle 5 s ausgelesen', 'planned'),
@@ -610,7 +610,7 @@
             html('li', { text: 'Unterspannungsschutz: softwareseitig (power_watch.py, Code fertig) + Relais (BOM).' }),
             html('li', { text: 'Kontrolliertes Herunterfahren: implemented in power_watch.py (30 s Hold, 5 s Takt).' }),
             html('li', { text: 'Klemme-15-/Zündungssignal: NICHT spezifiziert — bewusst kein Enable-Signal aus dem Bordnetz eingeplant, da die Zweitbatterie unabhängig vom Bordnetz bleibt.' }),
-            html('li', { text: 'Ruhestrom bei ausgeschalteter Zündung: NICHT spezifiziert / nicht gemessen — muss bei der Realisierung ermittelt werden (Pi Zero 2 W Ruhestrom typ. im Bereich einiger 100 mA, exakter Wert zu messen).' }),
+            html('li', { text: 'Ruhestrom bei ausgeschalteter Zündung: NICHT spezifiziert / nicht gemessen — muss bei der Realisierung ermittelt werden (Pi 3B+ typ. ~1,3 W / 5 V ≈ 260 mA plus GPS-Modul, exakter Wert zu messen).' }),
             html('li', { text: 'Entladung der Starterbatterie: entkoppelt durch Zweitbatterie (Konzept); Kapazität/Größe der Zweitbatterie noch nicht spezifiziert.' })
           ),
           html('p', { class: 'muted', text: 'Bewusste Lücke: Ohne Zündungssignal läuft die Einheit, solange die Zweitbatterie es trägt — der Watchdog ist dann der einzige Schutz. Bei der Realisierung zu klären (siehe offene Fragen im Abschlussbericht).' })

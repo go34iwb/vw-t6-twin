@@ -4,7 +4,7 @@
 
 ```
 [VW T6]                                 [Zuhause]
-Pi Zero 2 W                             Intel NUC (Proxmox)
+Pi 3B+ (Alt: Zero 2 W)                  Intel NUC (Proxmox)
  ├─ ELM327 (BT) → OBD-II PIDs           ├─ LXC: twin-server
  ├─ GPS HAT → Position (nur Fahrt)      │   ├─ ingest.py (SFTP Empfang)
  ├─ ADS1115 → Batteriespannung          │   ├─ SQLite/Postgres (telemetry.db)
@@ -18,7 +18,7 @@ Pi Zero 2 W                             Intel NUC (Proxmox)
 - **Ziel:** Live-Telemetrie (OBD-II + GPS), später Wartungs-Dashboard
 - **Daten:** OBD-II Standard-PIDs + GPS-Position (nur während Fahrt)
 - **Sync:** Batch über Heim-WLAN/Tailscale, kein Mobilfunk in v1
-- **Hardware:** Pi Zero 2 W, GPS HAT, ELM327 Bluetooth; Strom aus Zweitbatterie mit Unterspannungsschutz (12.0V GPIO-Überwachung + Hardware-Relais)
+- **Hardware:** Pi 3B+ (Alternativen: Zero 2 W/WH — gleiche 40-Pin-HAT-Pins, Software identisch; 3B+ gewählt wegen Verfügbarkeit, 2× USB für künftiges USB-ELM327-Upgrade und 5-GHz-WLAN für stabile Tailscale-Verbindung), GPS HAT, ELM327 Bluetooth; Strom aus Zweitbatterie mit Unterspannungsschutz (12.0V GPIO-Überwachung + Hardware-Relais)
 - **Polling:** OBD alle 5s; GPS 60s bzw. nur bei Bewegung
 - **Speicher:** SQLite WAL auf Pi; NUC konsolidiert in `telemetry.db`
 - **Dashboard v1:** statisches JSON + Chart.js auf GitHub Pages (v2: React SPA + API)

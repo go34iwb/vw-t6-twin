@@ -5,7 +5,7 @@ Digitaler Zwilling eines VW T6 Transporter/Caravelle, Bj. 2017.
 ## Aufbau
 
 ```
-pi/         Software, die auf dem Raspberry Pi Zero 2 W im Bus läuft
+pi/         Software, die auf dem Raspberry Pi 3B+ im Bus läuft (Alternative: Zero 2 W/WH)
 server/     Ingest + Export-Skripte für den Intel NUC (Proxmox LXC "twin-server")
 dashboard/  Statisches GitHub-Pages-Dashboard (Chart.js + Leaflet)
 docs/       Architektur, BOM
