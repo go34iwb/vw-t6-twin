@@ -59,6 +59,54 @@ CREATE TABLE telemetry (
 - Keine Positionsdaten im Repo-History vor 24h (Aggregation löscht Feinauflösung > 24h)
 - API-Key nicht erforderlich (statisch)
 
+## Sync-Szenarien & Auto-Connect (Pi → twin-server)
+
+Alle Szenarien laufen über **Tailscale** — die Sync-Zieladresse (`twin@twin-server`)
+bleibt unabhängig vom Upstream-Netzwerk identisch; kein Port-Forwarding, kein DynDNS.
+Der Pi ist headlos: **alle** Wi-Fi-Profile, das Tailscale-Auth-Key und die
+`rsync`-Konfiguration werden **vorab in das Image eingebrannt**
+(`pi/install.sh` [1/6]–[3/6]). Der Pi verbindet sich bei jedem Boot automatisch —
+ohne jegliche Interaktion auf dem Gerät.
+
+**Prioritätslogik (niedrigste Kosten zuerst):**
+
+| # | Szenario | Auslöser | Interaktion |
+|---|----------|----------|-------------|
+| 1 | **Heim-WLAN** (primär) | Auto in WLAN-Reichweite (Garage/Hof) | keine |
+| 2 | **Handy-Hotspot** (Fallback) | Hotspot am Handy aktiviert | 1×: Handy-Hotspot einschalten |
+| 3 | **USB-LTE-Stick + IoT-SIM** (Option, vollautonom) | immer | keine |
+
+**Szenario 1 — Heim-WLAN + Tailscale (0 €)**
+- Wi-Fi-Profil Heim (SSID + Passwort) im Image → Pi verbindet sich selbst
+- `tailscale up --auth-key=... --ssh` läuft als Dienst mit Auto-Reconnect
+- **Lücke außerhalb der WLAN-Reichweite:** Daten liegen im lokalen
+  SQLite-WAL-Puffer (Architekturprinzip) und werden nach dem nächsten
+  WLAN-Kontakt automatisch nachgesynchronisiert (idempotenter Merge per
+  `ts, source`)
+
+**Szenario 2 — Handy-Hotspot (0 € Hardware)**
+- Zweit-Profil (Hotspot-SSID + Passwort) im Pi hinterlegt → Pi springt
+  automatisch um, sobald der Hotspot in Reichweite ist
+- Das Handy bringt sein Mobilfunk-Internet ein; Tailscale leitet zum NUC
+- Nutzung: Parken im Urlaub, auf der Arbeit, beim TÜV — Pi-Side **ohne**
+  Interaktion
+
+**Szenario 3 — USB-LTE-Stick (Option)**
+- 4G-Dongle (Quectel EC25/EC20 USB o. ä.) an einen der USB-Ports des 3B+
+  (dafür u. a. gewählt, weil der Zero 2 W nur einen OTG-Port hat)
+- IoT-SIM (~5–15 €/Monat); Bedarf bei diesem Polling-Raster
+  (OBD 15 s, GPS 10 s, Sync 5 min): **≈ 1–2 MB/Tag**, d. h. eine 1-GB-SIM
+  ist ~10× überdimensioniert
+- Power-Reserve des DC/DC-Wandlers (12 V→5 V, ≥3 A) reicht (Stick Peak ~2 W)
+- Tailscale über die SIM → volle Autonomie ohne WLAN/Handy
+
+**Ausdrücklich verworfen:**
+- Bluetooth-PAN (Pi↔Handy): headless unzuverlässig, Pairing-Wartung,
+  niedriger Durchsatz
+- Auto-LTE / Infotainment als Upstream: kein API-/Port-Zugang vom Pi aus
+- Direkte IP-Anbindung (ohne Tailscale): bricht bei jedem Netzwerkwechsel
+
+
 ## Gespeicherte OBD-II-Diagnosen (read-only)
 
 Die Migration auf Pi und NUC ist additiv und wiederholbar: `open_db()` legt
