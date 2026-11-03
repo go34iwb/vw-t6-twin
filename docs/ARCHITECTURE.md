@@ -106,6 +106,27 @@ ohne jegliche Interaktion auf dem Gerät.
 - Auto-LTE / Infotainment als Upstream: kein API-/Port-Zugang vom Pi aus
 - Direkte IP-Anbindung (ohne Tailscale): bricht bei jedem Netzwerkwechsel
 
+## Synthetischer Test-Modus (vor echtem OBD-2)
+
+Bevor der ELM327-Adapter per Bluetooth angebunden ist, erzeugt
+`pi/synthetic_obd.py` **erfundene** Telemetrie im exakt gleichen
+SQLite-Format wie `collector.py` (Tabelle `telemetry` + `diagnostics`,
+WAL, Primärschlüssel `ts, source`). Damit läuft die komplette Pipeline —
+`sync.py → ingest → export → GitHub Pages` — ohne Fahrzeug verifizierbar.
+
+- **Einbindung:** `systemd/synthetic.service` (schließt sich mit
+  `collector.service` per `Conflicts=` gegenseitig aus — beide laufen nie
+  gleichzeitig)
+- **Aktivierung:** `pi/install.sh` mit `USE_SYNTHETIC=TRUE` (Default)
+- **Umschaltung auf echtes OBD** (nach ELM327-Setup):
+  `sudo systemctl disable --now synthetic && sudo systemctl enable --now collector`
+- **Wirkungsbereich:** nur die lokale Pi-DB; Server/Dashboard ändern sich
+  nicht. Die DTC-Simulation (z. B. P0128 + MIL) ist bewusst gewählt, um
+  auch die Diagnose-Ansicht des Dashboards zu testen.
+- Alle generierten Werte sind SYNTHETIC — sie repräsentieren keine
+  Fahrzeugrealität (Kaltstart-Verhalten, Verbrauch und Spannungsprofile
+  sind realitätsnah für einen 2.0 TDI 102 PS simuliert).
+
 
 ## Gespeicherte OBD-II-Diagnosen (read-only)
 

@@ -1,0 +1,18 @@
+[Unit]
+Description=VW T6 twin — SYNTHETIC OBD/GPS generator (test data, remove after real ELM327 setup)
+After=multi-user.target
+Conflicts=collector.service
+
+[Service]
+Type=simple
+Environment=TWIN_DB=/var/lib/twin/telemetry.db
+Environment=TWIN_OBD_INTERVAL=15
+Environment=TWIN_GPS_INTERVAL=10
+Environment=TWIN_MOVE_MIN_KMH=5
+ExecStartPre=/usr/bin/mkdir -p /var/lib/twin
+ExecStart=/usr/bin/python3 /opt/vw-t6-twin/synthetic_obd.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

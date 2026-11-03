@@ -13,7 +13,12 @@ HOME_WIFI_SSID="DeinHeimWLAN"
 HOME_WIFI_PASS="heim-wlan-passwort"
 HOTSPOT_WIFI_SSID="DeinHandyHotspot"
 HOTSPOT_WIFI_PASS="hotspot-passwort"
-TAILSCALE_AUTH_KEY="tskey-auth-XXXX..."   # tailscale.com → Machines → Auth Keys
+TAILSCALE_AUTH_KEY="tskey-auth-XXXX...X"   # tailscale.com → Machines → Auth Keys
+
+# TRUE  = synthetische Telemetrie (TEST) — kein OBD-Adapter nötig.
+# FALSE = echter collector.py (braucht gepairten ELM327 via BT).
+# Später nach dem ELM327-Setup einfach hier auf FALSE stellen und neu starten.
+USE_SYNTHETIC=TRUE
 # -------------------------------------------------------------------------------
 
 echo "[1/7] Packages"
@@ -70,12 +75,22 @@ echo "   Enable UART in /boot/firmware/config.txt: enable_uart=1"
 
 echo "[7/7] Install software"
 sudo mkdir -p /opt/vw-t6-twin /var/lib/twin
-sudo cp collector.py power_watch.py sync.py /opt/vw-t6-twin/
+sudo cp collector.py synthetic_obd.py power_watch.py sync.py /opt/vw-t6-twin/
 sudo chown -R root:root /opt/vw-t6-twin
-sudo cp systemd/collector.service systemd/power_watch.service \
+sudo cp systemd/collector.service systemd/synthetic.service systemd/power_watch.service \
         systemd/sync.service systemd/sync.timer /etc/systemd/system/
 sudo systemctl daemon-reload
-sudo systemctl enable --now collector.service power_watch.service sync.timer
+sudo systemctl enable --now power_watch.service sync.timer
+if [ "$USE_SYNTHETIC" = "TRUE" ]; then
+  echo "   -> USE_SYNTHETIC=TRUE: starte SYNTHETIC-Generator (TEST-Daten, kein OBD-Adapter nötig)."
+  echo "      Später nach ELM327-Setup auf echtes OBD umschalten:"
+  echo "        sudo systemctl disable --now synthetic && sudo systemctl enable --now collector"
+  sudo systemctl enable --now synthetic
+else
+  echo "   -> USE_SYNTHETIC=FALSE: starte echten collector.py (OBD via Bluetooth)."
+  sudo systemctl enable --now collector
+fi
 
-echo "Done. Check: systemctl status collector ; journalctl -u collector -f"
+echo "Done. Check: systemctl status $( [ "$USE_SYNTHETIC" = "TRUE" ] && echo synthetic || echo collector ) ; journalctl -u sync -f"
 echo "Netzwerk-Check: nmcli -t -f ACTIVE,NAME connection ; tailscale status"
+echo "Umschalten Test->Echt (nach ELM327): sudo systemctl disable --now synthetic && sudo systemctl enable --now collector"
