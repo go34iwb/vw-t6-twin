@@ -14,12 +14,24 @@ HOME_WIFI_PASS="heim-wlan-passwort"
 HOTSPOT_WIFI_SSID="DeinHandyHotspot"
 HOTSPOT_WIFI_PASS="hotspot-passwort"
 TAILSCALE_AUTH_KEY="tskey-auth-XXXX...X"   # tailscale.com → Machines → Auth Keys
+APN=""                                      # optional: APN für LTE-Stick (z. B. "iot.t-mobile")
 
 # TRUE  = synthetische Telemetrie (TEST) — kein OBD-Adapter nötig.
 # FALSE = echter collector.py (braucht gepairten ELM327 via BT).
 # Später nach dem ELM327-Setup einfach hier auf FALSE stellen und neu starten.
 USE_SYNTHETIC=TRUE
 # -------------------------------------------------------------------------------
+
+# Hilfsfunktion: ist ein Platzhalter noch ungelernt?
+# Erkennbar durch: leer, "…", oder einen der vordefinierten Beispel-Werte.
+is_placeholder() {
+  case "$1" in
+    ""|*"…"*) return 0 ;;
+    "DeinHeimWLAN"|"heim-wlan-passwort"|"DeinHandyHotspot"|"hotspot-passwort") return 0 ;;
+    tskey-auth-*|"tskey-auth-XXXX...X") return 0 ;;
+    *) return 1 ;;
+  esac
+}
 
 echo "[1/7] Packages"
 sudo apt-get update
@@ -30,48 +42,79 @@ echo "[2/7] Python deps"
 sudo python3 -m pip install --break-system-packages \
      obd gpsd-py3 adafruit-circuitpython-ads1x15
 
-echo "[3/7] Wi-Fi: Heim-WLAN (primär) + Handy-Hotspot (Fallback) — headless, vorab"
-echo "   NetworkManager-Profile (automatische Verbindung, keine Interaktion nötig):"
-echo "   sudo nmcli connection add type wifi con-name twin-home  \\"
-echo "     ifname wlan0 ssid $HOME_WIFI_SSID \\"
-echo "     sec.sec2 wpa-sec2 key-mgmt wpa-psk sec.psk $HOME_WIFI_PASS"
-echo "   sudo nmcli connection modify twin-home connection.autoconnect yes"
-echo "   sudo nmcli connection add type wifi con-name twin-hotspot \\"
-echo "     ifname wlan0 ssid $HOTSPOT_WIFI_SSID \\"
-echo "     sec.sec2 wpa-sec2 key-mgmt wpa-psk sec.psk $HOTSPOT_WIFI_PASS"
-echo "   sudo nmcli connection modify twin-hotspot connection.autoconnect yes \\"
-echo "     connection.autoconnect-priority -10"
-echo "   -> twin-hotspot hat niedrigere Priorität; Pi bevorzugt Heim-WLAN,"
-echo "      springt aber automatisch auf den Hotspot um, wenn das WLAN fehlt."
-echo "   Optional (LTE-Stick als drittes Upstream):"
-echo "     USB-4G-Dongle (z. B. Quectel EC25) anschließen, SIM einlegen,"
-echo "     sudo nmcli connection add type gsm con-name twin-lte \\"
-echo "       apn <dein-apn> autoconnect yes autoconnect-priority -20"
-echo "     -> höchste Autonomie, aber IoT-SIM-Kosten; erst bei Bedarf."
+echo "[3/7] Wi-Fi: Heim-WLAN (primär) + Handy-Hotspot (Fallback) — headless, automatisch"
+# NetworkManager-Profile: Pi verbindet sich bei jedem Boot selbst, keine Interaktion.
+if is_placeholder "$HOME_WIFI_SSID" || is_placeholder "$HOME_WIFI_PASS"; then
+  echo "   !! SKIP: HOME_WIFI_SSID/HOME_WIFI_PASS sind noch Platzhalter."
+  echo "      -> Nach dem Ausfüllen neu laufen lassen, oder manuell: nmcli connection add ..."
+else
+  sudo nmcli -No connection show 2>/dev/null | grep -q "^twin-home" || \
+    sudo nmcli connection add type wifi con-name twin-home ifname wlan0 ssid "$HOME_WIFI_SSID" \
+      sec.sec2 wpa-sec2 key-mgmt wpa-psk sec.psk "$HOME_WIFI_PASS"
+  sudo nmcli connection modify twin-home connection.autoconnect yes
+  echo "   -> Heim-WLAN-Profil 'twin-home' gesetzt (autoconnect, höchste Priorität)."
+fi
+
+if is_placeholder "$HOTSPOT_WIFI_SSID" || is_placeholder "$HOTSPOT_WIFI_PASS"; then
+  echo "   !! SKIP: HOTSPOT_WIFI_SSID/HOTSPOT_WIFI_PASS sind noch Platzhalter."
+else
+  sudo nmcli -No connection show 2>/dev/null | grep -q "^twin-hotspot" || \
+    sudo nmcli connection add type wifi con-name twin-hotspot ifname wlan0 ssid "$HOTSPOT_WIFI_SSID" \
+      sec.sec2 wpa-sec2 key-mgmt wpa-psk sec.psk "$HOTSPOT_WIFI_PASS"
+  sudo nmcli connection modify twin-hotspot connection.autoconnect yes \
+    connection.autoconnect-priority -10
+  echo "   -> Hotspot-Profil 'twin-hotspot' gesetzt (autoconnect-priority -10 = Fallback)."
+fi
+if [ -n "$APN" ]; then
+  sudo nmcli -No connection show 2>/dev/null | grep -q "^twin-lte" || \
+    sudo nmcli connection add type gsm con-name twin-lte apn "$APN" \
+      autoconnect yes autoconnect-priority -20
+  echo "   -> LTE-Profil 'twin-lte' gesetzt (autoconnect-priority -20 = letzter Fallback)."
+else
+  echo "   Optional (LTE-Stick als drittes Upstream): USB-4G-Dongle + SIM einlegen,"
+  echo "   APN oben setzen und neu installieren (oder: nmcli connection add type gsm ...)."
+fi
 
 echo "[4/7] Tailscale (einmaliges Auth-Key, danach automatisch, Auto-Reconnect)"
-echo "   curl -fsSL https://tailscale.com/install.sh | sh"
-echo "   sudo tailscale up --auth-key=$TAILSCALE_AUTH_KEY --ssh \\"
-echo "     --hostname=vw-t6-pi"
-echo "   -> Auth-Key wird NUR bei der ersten Anmeldung genutzt und danach"
-echo "      verworfen; danach startet tailscaled mit systemd automatisch."
-echo "   Pi ist nur über Tailscale erreichbar (kein Port-Forwarding)."
+if is_placeholder "$TAILSCALE_AUTH_KEY"; then
+  echo "   !! SKIP: TAILSCALE_AUTH_KEY ist noch ein Platzhalter."
+  echo "      -> tailscale.com -> Machines -> Auth Keys erzeugen, Key oben eintragen, neu installieren."
+  echo "      -> OHNE Tailscale synchronisiert der Pi NICHT zu twin-server."
+else
+  if ! command -v tailscale >/dev/null 2>&1; then
+    curl -fsSL https://tailscale.com/install.sh | sh
+  fi
+  if ! tailscale status >/dev/null 2>&1; then
+    sudo tailscale up --auth-key="$TAILSCALE_AUTH_KEY" --ssh --hostname=vw-t6-pi
+  fi
+  sudo systemctl enable --now tailscaled
+  echo "   -> Tailscale läuft; Key wird nach dem ersten Up verworfen (kein Klartext auf Platte)."
+  echo "      Pi-IP im Tailnet: $(tailscale ip 2>/dev/null || echo 'noch nicht verbunden')"
+fi
 
-echo "[5/7] ELM327 Bluetooth pairing (einmalig, interaktiv — danach persistiert)"
-echo "   Run: bluetoothctl"
-echo "     power on"
-echo "     scan on  →  find OBDII/Vgate MAC"
-echo "     pair <MAC>; trust <MAC>; connect <MAC>"
-echo "   Then bind to rfcomm:"
-echo "     sudo rfcomm bind 0 <MAC> 1"
-echo "   Persist: add 'rfcomm bind 0 <MAC> 1' to /etc/rc.local"
-echo "   -> 'trust' macht die spätere Verbindung automatisch (kein Re-Pairing)."
+echo "[5/7] ELM327 Bluetooth pairing"
+if [ "$USE_SYNTHETIC" = "TRUE" ]; then
+  echo "   -> SKIP: Synthetic-Modus aktiv — kein OBD-Adapter nötig (Test-Daten)."
+  echo "      Nach der Umstellung auf echtes OBD (USE_SYNTHETIC=FALSE) einmalig ausführen:"
+  echo "        bluetoothctl: power on / scan on / pair <MAC> / trust <MAC>"
+  echo "        sudo rfcomm bind 0 <MAC> 1   (+ 'rfcomm bind 0 <MAC> 1' in /etc/rc.local)"
+else
+  echo "   -> OBD-Adapter jetzt an der Zündungsleiste koppeln (einmalig, interaktiv):"
+  echo "        bluetoothctl: power on / scan on / pair <MAC> / trust <MAC>"
+  echo "        sudo rfcomm bind 0 <MAC> 1   (+ 'rfcomm bind 0 <MAC> 1' in /etc/rc.local)"
+fi
 
 echo "[6/7] gpsd"
-echo "   Edit /etc/default/gpsd:"
-echo "     DEVICES=\"/dev/serial0\""
-echo "     GPSD_OPTIONS=\"-n\""
-echo "   Enable UART in /boot/firmware/config.txt: enable_uart=1"
+if [ "$USE_SYNTHETIC" = "TRUE" ]; then
+  echo "   -> SKIP: Synthetic-Modus — GPS wird simuliert, kein HAT vorhanden."
+else
+  sudo sed -i 's/^DEVICES=.*/DEVICES="\/dev\/serial0"/' /etc/default/gpsd
+  sudo sed -i 's/^GPSD_OPTIONS=.*/GPSD_OPTIONS="-n"/' /etc/default/gpsd
+  sudo grep -q '^enable_uart=1' /boot/firmware/config.txt 2>/dev/null || \
+    echo 'enable_uart=1' | sudo tee -a /boot/firmware/config.txt
+  sudo systemctl enable --now gpsd
+  echo "   -> gpsd auf /dev/serial0 aktiv (UART freigegeben)."
+fi
 
 echo "[7/7] Install software"
 sudo mkdir -p /opt/vw-t6-twin /var/lib/twin
@@ -91,6 +134,12 @@ else
   sudo systemctl enable --now collector
 fi
 
-echo "Done. Check: systemctl status $( [ "$USE_SYNTHETIC" = "TRUE" ] && echo synthetic || echo collector ) ; journalctl -u sync -f"
-echo "Netzwerk-Check: nmcli -t -f ACTIVE,NAME connection ; tailscale status"
+echo "=============================================="
+echo " Done. Status:"
+if is_placeholder "$HOME_WIFI_SSID"; then echo "   [!] Wi-Fi: noch Platzhalter — kein Upstream" ; else echo "   [OK] Wi-Fi-Profile gesetzt" ; fi
+if is_placeholder "$TAILSCALE_AUTH_KEY"; then echo "   [!] Tailscale: Auth-Key fehlt — kein Sync zum NUC" ; else echo "   [OK] Tailscale verbunden" ; fi
+echo "   Datenquelle: $([ "$USE_SYNTHETIC" = "TRUE" ] && echo 'SYNTHETIC (Test)' || echo 'echt (collector)')"
+echo "=============================================="
+echo "Checks: systemctl status $( [ "$USE_SYNTHETIC" = "TRUE" ] && echo synthetic || echo collector ) ; journalctl -u sync -f"
+echo "Netzwerk: nmcli -t -f ACTIVE,NAME connection ; tailscale status"
 echo "Umschalten Test->Echt (nach ELM327): sudo systemctl disable --now synthetic && sudo systemctl enable --now collector"
